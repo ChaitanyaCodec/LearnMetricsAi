@@ -1,0 +1,92 @@
+{% extends "base/auth_base.html" %}
+{% load static %}
+
+{% block title %}Login - LearnMetrics AI{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-4 col-md-6 col-sm-10">
+                <div class="card auth-card border-0 shadow-lg">
+                    <!-- Card Header -->
+                    <div class="auth-header text-center">
+                        <div class="auth-icon-wrapper mb-2">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="auth-title">LearnMetrics AI</h3>
+                        <p class="auth-subtitle mb-0">AI-Powered Teaching Assistant & Student Analytics</p>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="card-body p-4 p-sm-5">
+                        <form method="post" id="loginForm" novalidate>
+                            {% csrf_token %}
+
+                            {% if form.non_field_errors %}
+                            <div class="alert alert-danger py-2 small" role="alert">
+                                {{ form.non_field_errors }}
+                            </div>
+                            {% endif %}
+
+                            <!-- Email Input -->
+                            <div class="mb-3">
+                                <label class="form-label fw-medium text-secondary">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i
+                                            class="fa-regular fa-envelope text-muted"></i></span>
+                                    {{ form.username }}
+                                </div>
+                                {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">{{ form.username.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Password Input -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <label class="form-label fw-medium text-secondary">Password</label>
+                                    <a href="#" class="text-decoration-none small text-primary fw-medium">Forgot?</a>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-lock text-muted"></i></span>
+                                    {{ form.password }}
+                                    <button type="button" class="btn btn-outline-secondary toggle-password"
+                                        tabindex="-1" aria-label="Show password"> <i class="fa-regular fa-eye"></i>
+                                    </button>
+                                </div>
+                                {% if form.password.errors %}
+                                <div class="invalid-feedback d-block">{{ form.password.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Remember Me Checkbox -->
+                            <div class="mb-4 d-flex align-items-center justify-content-between">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input custom-checkbox" id="remember"
+                                        name="remember">
+                                    <label class="form-check-label text-secondary small" for="remember">
+                                        Remember me for 30 days
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button class="btn btn-primary btn-login w-100 py-2.5 shadow-sm" type="submit"
+                                id="submitBtn">
+                                <span>Sign In</span>
+                                <i class="fa-solid fa-arrow-right ms-2"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Footer Note -->
+                <p class="text-center text-muted small mt-4">
+                    Need help logging in? <a href="#" class="text-primary text-decoration-none">Contact Support</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
