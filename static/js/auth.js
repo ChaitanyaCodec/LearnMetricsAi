@@ -3,20 +3,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const togglePasswordBtn = document.querySelector(".toggle-password");
     
     // Toggle Password Visibility
-    if (togglePasswordBtn) {
-        togglePasswordBtn.addEventListener("click", function () {
-            const passwordInput = document.getElementById("password-field");
-            const icon = this.querySelector("i");
-            
-            if (passwordInput.type === "password") {
-                passwordInput.type = "text";
-                icon.classList.replace("fa-eye", "fa-eye-slash");
-            } else {
-                passwordInput.type = "password";
-                icon.classList.replace("fa-eye-slash", "fa-eye");
-            }
-        });
-    }
+    if (togglePasswordBtn && passwordInput) {
+    togglePasswordBtn.addEventListener("click", function () {
+
+        const icon = this.querySelector("i");
+
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            icon.classList.replace("fa-eye", "fa-eye-slash");
+            this.setAttribute("aria-label", "Hide password");
+        } else {
+            passwordInput.type = "password";
+            icon.classList.replace("fa-eye-slash", "fa-eye");
+            this.setAttribute("aria-label", "Show password");
+        }
+
+    });
+}
 
     // Submit Loading State
     if (form) {

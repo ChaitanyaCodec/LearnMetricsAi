@@ -1,5 +1,7 @@
 from django.contrib.auth.mixins import AccessMixin
+
 from .models import User
+
 
 class RoleRequiredMixin(AccessMixin):
 
@@ -11,11 +13,10 @@ class RoleRequiredMixin(AccessMixin):
             return self.handle_no_permission()
 
         if request.user.role not in self.allowed_roles:
-            raise PermissionDenied(
-                "You do not have permission to access this page."
-            )
+            raise PermissionDenied("You do not have permission to access this page.")
 
         return super().dispatch(request, *args, **kwargs)
+
 
 class AdminRequiredMixin(RoleRequiredMixin):
     allowed_roles = [User.Roles.ADMIN]

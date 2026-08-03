@@ -4,8 +4,8 @@ from django.views import View
 
 from apps.accounts.mixins import (
     AdminRequiredMixin,
-    TeacherRequiredMixin,
     StudentRequiredMixin,
+    TeacherRequiredMixin,
 )
 
 

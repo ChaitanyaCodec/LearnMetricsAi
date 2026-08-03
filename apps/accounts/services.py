@@ -27,11 +27,14 @@ class AuthenticationService:
             )
         )
 
+
 class ProfileService:
     """User profile business logic."""
+
     pass
 
 
 class PasswordService:
     """Password management business logic."""
+
     pass
