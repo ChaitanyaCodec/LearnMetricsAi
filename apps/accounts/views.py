@@ -29,7 +29,7 @@ class LoginView(DjangoLoginView):
 
 class LogoutView(DjangoLogoutView):
 
-    next_page = settings.LOGOUT_REDIRECT_URL
+    next_page = reverse_lazy("accounts:login")
 
     def dispatch(self, request, *args, **kwargs):
 

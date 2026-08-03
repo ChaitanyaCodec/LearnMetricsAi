@@ -1,0 +1,175 @@
+/* ==========================================================================
+   APPLICATION LAYOUT
+   LearnMetrics AI
+========================================================================== */
+
+/* ==========================================================================
+   RESET
+========================================================================== */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    height: 100%;
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+
+    font-family: var(--font-family);
+
+    background: var(--body-bg);
+
+    color: var(--text-primary);
+
+    overflow-x: hidden;
+}
+
+/* ==========================================================================
+   DASHBOARD WRAPPER
+========================================================================== */
+
+.dashboard-wrapper {
+
+    display: flex;
+
+    min-height: 100vh;
+
+    width: 100%;
+}
+
+/* ==========================================================================
+   MAIN WRAPPER
+========================================================================== */
+
+.main-wrapper {
+
+    display: flex;
+
+    flex-direction: column;
+
+    flex: 1;
+
+    min-height: 100vh;
+
+    margin-left: var(--sidebar-width);
+
+    transition: margin-left var(--transition-normal);
+
+    background: var(--body-bg);
+}
+
+/* ==========================================================================
+   CONTENT
+========================================================================== */
+
+.dashboard-content {
+
+    flex: 1;
+
+    width: 100%;
+
+    max-width: var(--content-max-width);
+
+    padding: var(--space-8);
+
+    margin: 0 auto;
+}
+
+/* ==========================================================================
+   PAGE SECTIONS
+========================================================================== */
+
+.page-section {
+
+    margin-bottom: var(--space-8);
+
+}
+
+.page-section:last-child {
+
+    margin-bottom: 0;
+
+}
+
+/* ==========================================================================
+   FOOTER
+========================================================================== */
+
+.dashboard-footer {
+
+    margin-top: auto;
+
+    background: var(--navbar-bg);
+
+    border-top: 1px solid var(--border-color);
+
+    padding: var(--space-5) var(--space-8);
+
+    color: var(--text-muted);
+
+    font-size: var(--font-size-sm);
+
+}
+
+/* ==========================================================================
+   UTILITIES
+========================================================================== */
+
+.full-width {
+
+    width: 100%;
+
+}
+
+.center-content {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+}
+
+.hidden {
+
+    display: none !important;
+
+}
+
+/* ==========================================================================
+   RESPONSIVE
+========================================================================== */
+
+@media (max-width: 992px) {
+
+    .main-wrapper {
+
+        margin-left: 0;
+
+    }
+
+    .dashboard-content {
+
+        padding: var(--space-5);
+
+    }
+
+}
+
+@media (max-width: 576px) {
+
+    .dashboard-content {
+
+        padding: var(--space-4);
+
+    }
+
+}

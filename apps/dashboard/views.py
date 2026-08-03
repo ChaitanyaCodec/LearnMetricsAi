@@ -1,39 +1,65 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.views import View
+from django.views.generic import TemplateView
 
 from apps.accounts.mixins import (
     AdminRequiredMixin,
-    StudentRequiredMixin,
     TeacherRequiredMixin,
+    StudentRequiredMixin,
 )
+
+
+class DashboardRedirectView(LoginRequiredMixin, View):
+    """
+    Redirect authenticated users to their role-based dashboard.
+    """
+
+    def get(self, request, *args, **kwargs):
+
+        if request.user.role == request.user.Roles.ADMIN:
+            return redirect("dashboard:admin")
+
+        elif request.user.role == request.user.Roles.TEACHER:
+            return redirect("dashboard:teacher")
+
+        elif request.user.role == request.user.Roles.STUDENT:
+            return redirect("dashboard:student")
+
+        return redirect("accounts:login")
 
 
 class AdminDashboardView(
     LoginRequiredMixin,
     AdminRequiredMixin,
-    View,
+    TemplateView,
 ):
+    """
+    Administrator Dashboard
+    """
 
-    def get(self, request):
-        return HttpResponse("Administrator Dashboard")
+    template_name = "dashboard/admin_dashboard.html"
 
 
 class TeacherDashboardView(
     LoginRequiredMixin,
     TeacherRequiredMixin,
-    View,
+    TemplateView,
 ):
+    """
+    Teacher Dashboard
+    """
 
-    def get(self, request):
-        return HttpResponse("Teacher Dashboard")
+    template_name = "dashboard/teacher_dashboard.html"
 
 
 class StudentDashboardView(
     LoginRequiredMixin,
     StudentRequiredMixin,
-    View,
+    TemplateView,
 ):
+    """
+    Student Dashboard
+    """
 
-    def get(self, request):
-        return HttpResponse("Student Dashboard")
+    template_name = "dashboard/student_dashboard.html"

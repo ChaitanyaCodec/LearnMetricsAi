@@ -1,0 +1,396 @@
+/* ==========================================================================
+   NAVBAR
+   LearnMetrics AI
+========================================================================== */
+
+.dashboard-navbar {
+
+    height: var(--navbar-height);
+
+    background: var(--navbar-bg);
+
+    border-bottom: 1px solid var(--border-color);
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 0 var(--space-8);
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: var(--z-navbar);
+
+}
+
+/* ==========================================================================
+   LEFT SECTION
+========================================================================== */
+
+.navbar-left {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: var(--space-5);
+
+}
+
+.sidebar-toggle {
+
+    display: none;
+
+    width: 42px;
+
+    height: 42px;
+
+    border: none;
+
+    background: transparent;
+
+    border-radius: var(--radius-md);
+
+    cursor: pointer;
+
+    transition: var(--transition-normal);
+
+}
+
+.sidebar-toggle:hover {
+
+    background: #f1f5f9;
+
+}
+
+.sidebar-toggle i {
+
+    font-size: 1.1rem;
+
+    color: var(--text-primary);
+
+}
+
+.navbar-title {
+
+    display: flex;
+
+    flex-direction: column;
+
+}
+
+.navbar-title h1 {
+
+    margin: 0;
+
+    font-size: 1.35rem;
+
+    font-weight: var(--font-weight-bold);
+
+    color: var(--text-primary);
+
+}
+
+.navbar-title p {
+
+    margin: 2px 0 0;
+
+    font-size: var(--font-size-sm);
+
+    color: var(--text-muted);
+
+}
+
+/* ==========================================================================
+   RIGHT SECTION
+========================================================================== */
+
+.navbar-right {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: var(--space-4);
+
+}
+
+/* ==========================================================================
+   SEARCH BOX
+========================================================================== */
+
+.search-box {
+
+    width: 300px;
+
+    height: 44px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: var(--space-3);
+
+    padding: 0 var(--space-4);
+
+    border: 1px solid var(--border-color);
+
+    border-radius: var(--radius-md);
+
+    background: var(--body-bg);
+
+}
+
+.search-box i {
+
+    color: var(--text-muted);
+
+}
+
+.search-box input {
+
+    flex: 1;
+
+    border: none;
+
+    outline: none;
+
+    background: transparent;
+
+    font-size: var(--font-size-sm);
+
+}
+
+.search-box input::placeholder {
+
+    color: var(--text-light);
+
+}
+
+/* ==========================================================================
+   ICON BUTTONS
+========================================================================== */
+
+.icon-button {
+
+    width: 44px;
+
+    height: 44px;
+
+    border: none;
+
+    border-radius: var(--radius-md);
+
+    background: transparent;
+
+    color: var(--text-secondary);
+
+    cursor: pointer;
+
+    transition: var(--transition-normal);
+
+}
+
+.icon-button:hover {
+
+    background: #eff6ff;
+
+    color: var(--color-primary);
+
+}
+
+/* ==========================================================================
+   PROFILE
+========================================================================== */
+
+.profile-button {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: var(--space-3);
+
+    border: none;
+
+    background: transparent;
+
+    padding: 6px 10px;
+
+    border-radius: var(--radius-md);
+
+    cursor: pointer;
+
+    transition: var(--transition-normal);
+
+}
+
+.profile-button:hover {
+
+    background: #f8fafc;
+
+}
+
+.profile-avatar {
+
+    width: 42px;
+
+    height: 42px;
+
+    border-radius: 50%;
+
+    overflow: hidden;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    background: var(--color-primary);
+
+    color: white;
+
+    flex-shrink: 0;
+
+}
+
+.profile-avatar img {
+
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+
+}
+
+.profile-details {
+
+    display: flex;
+
+    flex-direction: column;
+
+    text-align: left;
+
+}
+
+.profile-details strong {
+
+    font-size: .9rem;
+
+    color: var(--text-primary);
+
+}
+
+.profile-details small {
+
+    font-size: .78rem;
+
+    color: var(--text-muted);
+
+}
+
+.dropdown-arrow {
+
+    font-size: .75rem;
+
+    color: var(--text-muted);
+
+}
+
+/* ==========================================================================
+   DROPDOWN
+========================================================================== */
+
+.dropdown-menu {
+
+    border: none;
+
+    border-radius: var(--radius-lg);
+
+    padding: var(--space-3);
+
+    box-shadow: var(--shadow-lg);
+
+    min-width: 240px;
+
+}
+
+.dropdown-header {
+
+    font-weight: var(--font-weight-semibold);
+
+    color: var(--text-primary);
+
+}
+
+.dropdown-item {
+
+    border-radius: var(--radius-sm);
+
+    padding: .6rem .8rem;
+
+}
+
+.dropdown-item:hover {
+
+    background: #eff6ff;
+
+}
+
+.dropdown-item.text-danger:hover {
+
+    background: #fee2e2;
+
+}
+
+/* ==========================================================================
+   RESPONSIVE
+========================================================================== */
+
+@media (max-width: 992px) {
+
+    .sidebar-toggle {
+
+        display: flex;
+
+        justify-content: center;
+
+        align-items: center;
+
+    }
+
+    .search-box {
+
+        display: none;
+
+    }
+
+    .profile-details {
+
+        display: none;
+
+    }
+
+}
+
+@media (max-width: 576px) {
+
+    .dashboard-navbar {
+
+        padding: 0 var(--space-4);
+
+    }
+
+    .navbar-title p {
+
+        display: none;
+
+    }
+
+}

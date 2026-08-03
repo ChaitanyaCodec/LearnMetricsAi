@@ -1,0 +1,389 @@
+{% extends "base/dashboard_base.html" %}
+{% load static %}
+
+{% block title %}
+Administrator Dashboard | LearnMetrics AI
+{% endblock %}
+
+{% block navbar_title %}
+Administrator Dashboard
+{% endblock %}
+
+{% block navbar_subtitle %}
+AI Powered Educational Intelligence Platform
+{% endblock %}
+
+{% block content %}
+
+<!-- ==========================================================
+     HERO SECTION
+=========================================================== -->
+
+<section class="dashboard-hero">
+
+    <div class="hero-content">
+
+        <span class="hero-badge">
+
+            <i class="fa-solid fa-sparkles"></i>
+
+            LearnMetrics AI
+
+        </span>
+
+        <h1>
+
+            Welcome back,
+            {{ request.user.first_name }}
+
+            👋
+
+        </h1>
+
+        <p>
+
+            Monitor your institution, manage users, oversee academic
+            operations, analyze AI insights, and access powerful
+            administrative tools from one centralized platform.
+
+        </p>
+
+        <div class="hero-actions">
+
+            <button class="btn btn-primary">
+
+                <i class="fa-solid fa-rocket me-2"></i>
+
+                Get Started
+
+            </button>
+
+            <button class="btn btn-outline-primary">
+
+                <i class="fa-solid fa-book me-2"></i>
+
+                Documentation
+
+            </button>
+
+        </div>
+
+    </div>
+
+    <div class="hero-illustration">
+
+        <div class="hero-circle">
+
+            <i class="fa-solid fa-graduation-cap"></i>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ==========================================================
+     KPI CARDS
+=========================================================== -->
+
+<div class="row g-4 mb-4">
+
+    <div class="col-xl-3 col-md-6">
+
+        <div class="kpi-card">
+
+            <div class="kpi-content">
+
+                <span class="kpi-label">
+
+                    Total Teachers
+
+                </span>
+
+                <h2 class="kpi-value">
+
+                    125
+
+                </h2>
+
+                <span class="kpi-change positive">
+
+                    +12%
+
+                </span>
+
+            </div>
+
+            <div class="kpi-icon">
+
+                <i class="fa-solid fa-chalkboard-user"></i>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+
+        <div class="kpi-card">
+
+            <div class="kpi-content">
+
+                <span class="kpi-label">
+
+                    Total Students
+
+                </span>
+
+                <h2 class="kpi-value">
+
+                    2,540
+
+                </h2>
+
+                <span class="kpi-change positive">
+
+                    +8%
+
+                </span>
+
+            </div>
+
+            <div class="kpi-icon">
+
+                <i class="fa-solid fa-user-graduate"></i>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+
+        <div class="kpi-card">
+
+            <div class="kpi-content">
+
+                <span class="kpi-label">
+
+                    AI Requests
+
+                </span>
+
+                <h2 class="kpi-value">
+
+                    1,240
+
+                </h2>
+
+                <span class="kpi-change positive">
+
+                    +25%
+
+                </span>
+
+            </div>
+
+            <div class="kpi-icon">
+
+                <i class="fa-solid fa-robot"></i>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+
+        <div class="kpi-card">
+
+            <div class="kpi-content">
+
+                <span class="kpi-label">
+
+                    Reports
+
+                </span>
+
+                <h2 class="kpi-value">
+
+                    320
+
+                </h2>
+
+                <span class="kpi-change negative">
+
+                    -2%
+
+                </span>
+
+            </div>
+
+            <div class="kpi-icon">
+
+                <i class="fa-solid fa-chart-line"></i>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ==========================================================
+     CONTENT GRID
+=========================================================== -->
+
+<div class="row g-4">
+
+    <div class="col-lg-8">
+
+        <div class="card-custom">
+
+            <div class="card-header-custom">
+
+                <h5 class="card-title">
+
+                    Recent Activity
+
+                </h5>
+
+            </div>
+
+            <div class="card-body-custom">
+
+                <div class="empty-widget">
+
+                    Activity feed will appear here.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card-custom">
+
+            <div class="card-header-custom">
+
+                <h5 class="card-title">
+
+                    Quick Actions
+
+                </h5>
+
+            </div>
+
+            <div class="card-body-custom">
+
+                <div class="d-grid gap-3">
+
+                    <a href="#" class="action-card">
+
+                        <div class="action-icon">
+
+                            <i class="fa-solid fa-user-plus"></i>
+
+                        </div>
+
+                        <div class="action-content">
+
+                            <h6>Add User</h6>
+
+                            <p>Create a new user account.</p>
+
+                        </div>
+
+                    </a>
+
+                    <a href="#" class="action-card">
+
+                        <div class="action-icon">
+
+                            <i class="fa-solid fa-book-open"></i>
+
+                        </div>
+
+                        <div class="action-content">
+
+                            <h6>Manage Courses</h6>
+
+                            <p>View and update courses.</p>
+
+                        </div>
+
+                    </a>
+
+                    <a href="#" class="action-card">
+
+                        <div class="action-icon">
+
+                            <i class="fa-solid fa-chart-pie"></i>
+
+                        </div>
+
+                        <div class="action-content">
+
+                            <h6>Analytics</h6>
+
+                            <p>Open analytics dashboard.</p>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ==========================================================
+     ANALYTICS
+=========================================================== -->
+
+<div class="row mt-4">
+
+    <div class="col-12">
+
+        <div class="card-custom">
+
+            <div class="card-header-custom">
+
+                <h5 class="card-title">
+
+                    Analytics Overview
+
+                </h5>
+
+            </div>
+
+            <div class="card-body-custom">
+
+                <div class="empty-widget">
+
+                    Charts will be integrated in Phase 3B.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

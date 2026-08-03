@@ -1,0 +1,346 @@
+/* ==========================================================================
+   SIDEBAR
+   LearnMetrics AI
+========================================================================== */
+
+/* ==========================================================================
+   SIDEBAR CONTAINER
+========================================================================== */
+
+.sidebar {
+
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: var(--sidebar-width);
+    height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+
+    background: var(--sidebar-bg);
+
+    color: var(--text-white);
+
+    border-right: 1px solid var(--sidebar-border);
+
+    box-shadow: var(--shadow-md);
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    z-index: var(--z-sidebar);
+
+}
+
+/* ==========================================================================
+   BRAND
+========================================================================== */
+
+.sidebar-brand {
+
+    padding: var(--space-6);
+
+    border-bottom: 1px solid var(--sidebar-border);
+
+}
+
+.brand-link {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: var(--space-4);
+
+    text-decoration: none;
+
+}
+
+.brand-link:hover {
+
+    text-decoration: none;
+
+}
+
+.brand-icon {
+
+    width: 50px;
+    height: 50px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: var(--radius-lg);
+
+    background: rgba(255,255,255,.08);
+
+    color: #60a5fa;
+
+    font-size: 1.35rem;
+
+}
+
+.brand-content h5 {
+
+    margin: 0;
+
+    color: var(--text-white);
+
+    font-size: 1.05rem;
+
+    font-weight: var(--font-weight-bold);
+
+}
+
+.brand-content small {
+
+    display: block;
+
+    margin-top: 2px;
+
+    color: var(--text-light);
+
+    font-size: var(--font-size-xs);
+
+}
+
+/* ==========================================================================
+   NAVIGATION
+========================================================================== */
+
+.sidebar-nav {
+
+    flex: 1;
+
+    padding: var(--space-4) 0;
+
+}
+
+.sidebar-nav .nav {
+
+    padding: 0;
+
+    margin: 0;
+
+}
+
+.sidebar-nav .nav-item {
+
+    margin: 4px var(--space-4);
+
+}
+
+.sidebar-nav .nav-link {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: var(--space-4);
+
+    padding: 14px 18px;
+
+    border-radius: var(--radius-md);
+
+    color: var(--text-light);
+
+    text-decoration: none;
+
+    font-weight: var(--font-weight-medium);
+
+    transition: all var(--transition-normal);
+
+}
+
+.sidebar-nav .nav-link i {
+
+    width: 22px;
+
+    text-align: center;
+
+    font-size: 1rem;
+
+}
+
+.sidebar-nav .nav-link:hover {
+
+    background: var(--sidebar-hover);
+
+    color: var(--text-white);
+
+    transform: translateX(4px);
+
+}
+
+.sidebar-nav .nav-link.active {
+
+    background: var(--sidebar-active);
+
+    color: var(--text-white);
+
+    box-shadow: 0 6px 18px rgba(37,99,235,.25);
+
+}
+
+/* ==========================================================================
+   USER PANEL
+========================================================================== */
+
+.sidebar-user {
+
+    padding: var(--space-5);
+
+    border-top: 1px solid var(--sidebar-border);
+
+}
+
+.user-card {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: var(--space-3);
+
+}
+
+.user-avatar {
+
+    width: 46px;
+    height: 46px;
+
+    border-radius: 50%;
+
+    background: rgba(255,255,255,.08);
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    overflow: hidden;
+
+    flex-shrink: 0;
+
+}
+
+.user-avatar img {
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+}
+
+.user-avatar i {
+
+    font-size: 1.25rem;
+
+    color: white;
+
+}
+
+.user-info {
+
+    flex: 1;
+
+    min-width: 0;
+
+}
+
+.user-info h6 {
+
+    margin: 0;
+
+    color: white;
+
+    font-size: .90rem;
+
+    font-weight: var(--font-weight-semibold);
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+}
+
+.user-info small {
+
+    color: var(--text-light);
+
+    font-size: .78rem;
+
+}
+
+.status-dot {
+
+    width: 10px;
+    height: 10px;
+
+    border-radius: 50%;
+
+    background: var(--color-success);
+
+    box-shadow: 0 0 10px rgba(22,163,74,.45);
+
+}
+
+/* ==========================================================================
+   SCROLLBAR
+========================================================================== */
+
+.sidebar::-webkit-scrollbar {
+
+    width: 6px;
+
+}
+
+.sidebar::-webkit-scrollbar-track {
+
+    background: transparent;
+
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+
+    background: rgba(255,255,255,.20);
+
+    border-radius: 999px;
+
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+
+    background: rgba(255,255,255,.35);
+
+}
+
+/* ==========================================================================
+   RESPONSIVE
+========================================================================== */
+
+@media (max-width: 992px) {
+
+    .sidebar {
+
+        transform: translateX(-100%);
+
+        transition: transform var(--transition-normal);
+
+    }
+
+    .sidebar.show {
+
+        transform: translateX(0);
+
+    }
+
+}

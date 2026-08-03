@@ -1,0 +1,141 @@
+/* ==========================================================================
+   LEARNMETRICS AI DESIGN SYSTEM
+   ========================================================================== */
+
+/* ==========================================================================
+   COLORS
+   ========================================================================== */
+
+:root {
+
+    /* Primary */
+    --color-primary: #2563eb;
+    --color-primary-dark: #1d4ed8;
+    --color-primary-light: #dbeafe;
+
+    /* Success */
+    --color-success: #16a34a;
+    --color-success-light: #dcfce7;
+
+    /* Warning */
+    --color-warning: #f59e0b;
+    --color-warning-light: #fef3c7;
+
+    /* Danger */
+    --color-danger: #dc2626;
+    --color-danger-light: #fee2e2;
+
+    /* Info */
+    --color-info: #0891b2;
+    --color-info-light: #cffafe;
+
+    /* Neutral */
+    --color-white: #ffffff;
+    --color-black: #000000;
+
+    /* Backgrounds */
+    --body-bg: #f8fafc;
+    --card-bg: #ffffff;
+    --navbar-bg: #ffffff;
+
+    /* Sidebar */
+    --sidebar-bg: #1e293b;
+    --sidebar-hover: #334155;
+    --sidebar-active: #2563eb;
+    --sidebar-border: rgba(255,255,255,.08);
+
+    /* Text */
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+    --text-white: #ffffff;
+
+    /* Borders */
+    --border-color: #e5e7eb;
+
+    /* ==========================================================================
+       TYPOGRAPHY
+       ========================================================================== */
+
+    --font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+
+    --font-size-xs: .75rem;
+    --font-size-sm: .875rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.5rem;
+    --font-size-2xl: 2rem;
+
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* ==========================================================================
+       LAYOUT
+       ========================================================================== */
+
+    --sidebar-width: 280px;
+
+    --navbar-height: 72px;
+
+    --content-max-width: 1600px;
+
+    /* ==========================================================================
+       SPACING
+       ========================================================================== */
+
+    --space-1: .25rem;
+    --space-2: .5rem;
+    --space-3: .75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+
+    /* ==========================================================================
+       BORDER RADIUS
+       ========================================================================== */
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+    --radius-pill: 999px;
+    --radius-circle: 50%;
+
+    /* ==========================================================================
+       SHADOWS
+       ========================================================================== */
+
+    --shadow-sm:
+        0 1px 3px rgba(15,23,42,.05);
+
+    --shadow-md:
+        0 4px 10px rgba(15,23,42,.06);
+
+    --shadow-lg:
+        0 10px 30px rgba(15,23,42,.08);
+
+    /* ==========================================================================
+       TRANSITIONS
+       ========================================================================== */
+
+    --transition-fast: .15s ease-in-out;
+    --transition-normal: .25s ease-in-out;
+    --transition-slow: .35s ease-in-out;
+
+    /* ==========================================================================
+       Z-INDEX
+       ========================================================================== */
+
+    --z-sidebar: 1000;
+    --z-navbar: 900;
+    --z-dropdown: 1100;
+    --z-modal: 1200;
+
+}

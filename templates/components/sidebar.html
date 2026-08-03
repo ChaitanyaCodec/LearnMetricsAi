@@ -1,0 +1,215 @@
+{% load static %}
+
+<aside class="sidebar">
+
+    <!-- ==========================================================
+         BRAND
+    =========================================================== -->
+
+    <div class="sidebar-brand">
+
+        <a href="{% url 'dashboard:redirect' %}" class="brand-link">
+
+            <div class="brand-icon">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+
+            <div class="brand-content">
+
+                <h5>LearnMetrics AI</h5>
+
+                <small>
+                    Educational Intelligence Platform
+                </small>
+
+            </div>
+
+        </a>
+
+    </div>
+
+    <!-- ==========================================================
+         NAVIGATION
+    =========================================================== -->
+
+    <nav class="sidebar-nav">
+
+        <ul class="nav flex-column">
+
+            <li class="nav-item">
+
+                <a href="{% url 'dashboard:redirect' %}"
+                   class="nav-link">
+
+                    <i class="fa-solid fa-house"></i>
+
+                    <span>Dashboard</span>
+
+                </a>
+
+            </li>
+
+            <li class="nav-item">
+
+                <a href="#"
+                   class="nav-link">
+
+                    <i class="fa-solid fa-book-open"></i>
+
+                    <span>Academic</span>
+
+                </a>
+
+            </li>
+
+            <li class="nav-item">
+
+                <a href="#"
+                   class="nav-link">
+
+                    <i class="fa-solid fa-chalkboard-user"></i>
+
+                    <span>Teachers</span>
+
+                </a>
+
+            </li>
+
+            <li class="nav-item">
+
+                <a href="#"
+                   class="nav-link">
+
+                    <i class="fa-solid fa-user-graduate"></i>
+
+                    <span>Students</span>
+
+                </a>
+
+            </li>
+
+            <li class="nav-item">
+
+                <a href="#"
+                   class="nav-link">
+
+                    <i class="fa-solid fa-folder-open"></i>
+
+                    <span>Courses</span>
+
+                </a>
+
+            </li>
+
+            <li class="nav-item">
+
+                <a href="#"
+                   class="nav-link">
+
+                    <i class="fa-solid fa-robot"></i>
+
+                    <span>AI Assistant</span>
+
+                </a>
+
+            </li>
+
+            <li class="nav-item">
+
+                <a href="#"
+                   class="nav-link">
+
+                    <i class="fa-solid fa-chart-line"></i>
+
+                    <span>Analytics</span>
+
+                </a>
+
+            </li>
+
+            <li class="nav-item">
+
+                <a href="#"
+                   class="nav-link">
+
+                    <i class="fa-solid fa-file-lines"></i>
+
+                    <span>Reports</span>
+
+                </a>
+
+            </li>
+
+            <li class="nav-item">
+
+                <a href="#"
+                   class="nav-link">
+
+                    <i class="fa-solid fa-bell"></i>
+
+                    <span>Notifications</span>
+
+                </a>
+
+            </li>
+
+            <li class="nav-item">
+
+                <a href="#"
+                   class="nav-link">
+
+                    <i class="fa-solid fa-gear"></i>
+
+                    <span>Settings</span>
+
+                </a>
+
+            </li>
+
+        </ul>
+
+    </nav>
+
+    <!-- ==========================================================
+         USER PANEL
+    =========================================================== -->
+
+    <div class="sidebar-user">
+
+        <div class="user-card">
+
+            <div class="user-avatar">
+
+                {% if request.user.profile_image %}
+                    <img
+                        src="{{ request.user.profile_image.url }}"
+                        alt="{{ request.user.full_name }}">
+                {% else %}
+                    <i class="fa-solid fa-user"></i>
+                {% endif %}
+
+            </div>
+
+            <div class="user-info">
+
+                <h6>
+
+                    {{ request.user.full_name|default:request.user.email }}
+
+                </h6>
+
+                <small>
+
+                    {{ request.user.get_role_display }}
+
+                </small>
+
+            </div>
+
+            <span class="status-dot"></span>
+
+        </div>
+
+    </div>
+
+</aside>

@@ -1,0 +1,168 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="description"
+        content="LearnMetrics AI - AI Powered Educational Intelligence Platform">
+
+    <meta
+        name="theme-color"
+        content="#2563eb">
+
+    <title>
+
+        {% block title %}
+            LearnMetrics AI
+        {% endblock %}
+
+    </title>
+
+    <!-- ==========================================================
+         Google Fonts
+    =========================================================== -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- ==========================================================
+         Bootstrap
+    =========================================================== -->
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <!-- ==========================================================
+         Font Awesome
+    =========================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <!-- ==========================================================
+         Application CSS
+    =========================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/variables.css' %}">
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/layout.css' %}">
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/sidebar.css' %}">
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/navbar.css' %}">
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/dashboard.css' %}">
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/cards.css' %}">
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/forms.css' %}">
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/tables.css' %}">
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/utilities.css' %}">
+
+    {% block extra_css %}
+    {% endblock %}
+
+</head>
+
+<body>
+
+<div class="dashboard-wrapper">
+
+    <!-- ==========================================================
+         Sidebar
+    =========================================================== -->
+
+    {% include "components/sidebar.html" %}
+
+    <!-- ==========================================================
+         Main Area
+    =========================================================== -->
+
+    <div class="main-wrapper">
+
+        <!-- Navbar -->
+
+        {% include "components/navbar.html" %}
+
+        <!-- Main Content -->
+
+        <main class="dashboard-content">
+
+            {% include "components/alerts.html" %}
+
+            {% include "components/breadcrumbs.html" %}
+
+            {% include "components/page_header.html" %}
+
+            {% block content %}
+            {% endblock %}
+
+        </main>
+
+        <!-- Footer -->
+
+        {% include "components/footer.html" %}
+
+    </div>
+
+</div>
+
+<!-- ==========================================================
+     Bootstrap JS
+=========================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ==========================================================
+     Application JavaScript
+=========================================================== -->
+
+<script src="{% static 'js/sidebar.js' %}"></script>
+
+<script src="{% static 'js/dashboard.js' %}"></script>
+
+{% block extra_js %}
+{% endblock %}
+
+</body>
+
+</html>

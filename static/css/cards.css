@@ -1,0 +1,348 @@
+/* ==========================================================================
+   CARD SYSTEM
+   LearnMetrics AI
+========================================================================== */
+
+/* ==========================================================================
+   BASE CARD
+========================================================================== */
+
+.card-custom {
+
+    background: var(--card-bg);
+
+    border: 1px solid var(--border-color);
+
+    border-radius: var(--radius-xl);
+
+    box-shadow: var(--shadow-sm);
+
+    transition:
+        transform var(--transition-normal),
+        box-shadow var(--transition-normal);
+
+}
+
+.card-custom:hover {
+
+    transform: translateY(-3px);
+
+    box-shadow: var(--shadow-lg);
+
+}
+
+/* ==========================================================================
+   CARD HEADER
+========================================================================== */
+
+.card-header-custom {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 20px 24px;
+
+    border-bottom: 1px solid var(--border-color);
+
+    background: transparent;
+
+}
+
+.card-title {
+
+    margin: 0;
+
+    font-size: 1rem;
+
+    font-weight: var(--font-weight-semibold);
+
+    color: var(--text-primary);
+
+}
+
+.card-subtitle {
+
+    margin-top: 4px;
+
+    color: var(--text-muted);
+
+    font-size: var(--font-size-sm);
+
+}
+
+/* ==========================================================================
+   CARD BODY
+========================================================================== */
+
+.card-body-custom {
+
+    padding: 24px;
+
+}
+
+/* ==========================================================================
+   CARD FOOTER
+========================================================================== */
+
+.card-footer-custom {
+
+    padding: 16px 24px;
+
+    border-top: 1px solid var(--border-color);
+
+    background: transparent;
+
+}
+
+/* ==========================================================================
+   KPI CARD
+========================================================================== */
+
+.kpi-card {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    background: var(--card-bg);
+
+    border: 1px solid var(--border-color);
+
+    border-radius: var(--radius-lg);
+
+    padding: 24px;
+
+    box-shadow: var(--shadow-sm);
+
+    transition:
+        transform var(--transition-normal),
+        box-shadow var(--transition-normal);
+
+}
+
+.kpi-card:hover {
+
+    transform: translateY(-4px);
+
+    box-shadow: var(--shadow-lg);
+
+}
+
+.kpi-content {
+
+    display: flex;
+
+    flex-direction: column;
+
+}
+
+.kpi-label {
+
+    font-size: var(--font-size-sm);
+
+    color: var(--text-muted);
+
+    margin-bottom: 8px;
+
+}
+
+.kpi-value {
+
+    font-size: 2rem;
+
+    font-weight: var(--font-weight-bold);
+
+    color: var(--text-primary);
+
+    line-height: 1;
+
+}
+
+.kpi-change {
+
+    margin-top: 12px;
+
+    font-size: var(--font-size-sm);
+
+    font-weight: var(--font-weight-medium);
+
+}
+
+.kpi-change.positive {
+
+    color: var(--color-success);
+
+}
+
+.kpi-change.negative {
+
+    color: var(--color-danger);
+
+}
+
+.kpi-icon {
+
+    width: 64px;
+
+    height: 64px;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    border-radius: var(--radius-lg);
+
+    background: var(--color-primary-light);
+
+    color: var(--color-primary);
+
+    font-size: 1.6rem;
+
+}
+
+/* ==========================================================================
+   ACTION CARD
+========================================================================== */
+
+.action-card {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    padding: 20px;
+
+    background: var(--card-bg);
+
+    border: 1px solid var(--border-color);
+
+    border-radius: var(--radius-lg);
+
+    text-decoration: none;
+
+    transition: var(--transition-normal);
+
+}
+
+.action-card:hover {
+
+    transform: translateY(-3px);
+
+    box-shadow: var(--shadow-md);
+
+    text-decoration: none;
+
+}
+
+.action-icon {
+
+    width: 56px;
+
+    height: 56px;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    border-radius: var(--radius-lg);
+
+    background: var(--color-primary-light);
+
+    color: var(--color-primary);
+
+    font-size: 1.4rem;
+
+}
+
+.action-content h6 {
+
+    margin: 0;
+
+    color: var(--text-primary);
+
+    font-weight: var(--font-weight-semibold);
+
+}
+
+.action-content p {
+
+    margin: 6px 0 0;
+
+    color: var(--text-muted);
+
+    font-size: var(--font-size-sm);
+
+}
+
+/* ==========================================================================
+   STATS CARD
+========================================================================== */
+
+.stats-card {
+
+    text-align: center;
+
+    background: var(--card-bg);
+
+    border: 1px solid var(--border-color);
+
+    border-radius: var(--radius-lg);
+
+    padding: 24px;
+
+}
+
+.stats-number {
+
+    font-size: 2.2rem;
+
+    font-weight: var(--font-weight-bold);
+
+    color: var(--color-primary);
+
+}
+
+.stats-label {
+
+    margin-top: 10px;
+
+    color: var(--text-muted);
+
+}
+
+/* ==========================================================================
+   RESPONSIVE
+========================================================================== */
+
+@media (max-width: 768px) {
+
+    .kpi-card {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 20px;
+
+    }
+
+    .kpi-icon {
+
+        width: 56px;
+
+        height: 56px;
+
+    }
+
+}
