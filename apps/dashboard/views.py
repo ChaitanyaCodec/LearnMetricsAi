@@ -2,6 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django.views import View
 from django.views.generic import TemplateView
+from .services import get_admin_dashboard_statistics
 
 from apps.accounts.mixins import (
     AdminRequiredMixin,
@@ -39,6 +40,16 @@ class AdminDashboardView(
     """
 
     template_name = "dashboard/admin_dashboard.html"
+
+    def get_context_data(self, **kwargs):
+        """
+    Build the template context for the administrator dashboard.
+    """
+        context = super().get_context_data(**kwargs)
+
+        context["dashboard"] = get_admin_dashboard_statistics()
+
+        return context
 
 
 class TeacherDashboardView(

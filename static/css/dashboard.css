@@ -290,3 +290,33 @@
     }
 
 }
+
+
+
+.avatar-circle {
+
+    width: 42px;
+
+    height: 42px;
+
+    border-radius: 50%;
+
+    background: var(--bs-primary);
+
+    color: white;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-weight: 600;
+
+    font-size: 0.95rem;
+
+    text-transform: uppercase;
+
+    flex-shrink: 0;
+
+}

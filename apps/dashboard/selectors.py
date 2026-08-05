@@ -28,21 +28,21 @@ def get_total_students() -> int:
     """
     Return the total number of student users.
     """
-    return User.objects.filter(role=User.Role.STUDENT).count()
+    return User.objects.filter(role=User.Roles.STUDENT).count()
 
 
 def get_total_teachers() -> int:
     """
     Return the total number of teacher users.
     """
-    return User.objects.filter(role=User.Role.TEACHER).count()
+    return User.objects.filter(role=User.Roles.TEACHER).count()
 
 
 def get_total_admins() -> int:
     """
     Return the total number of administrator users.
     """
-    return User.objects.filter(role=User.Role.ADMIN).count()
+    return User.objects.filter(role=User.Roles.ADMIN).count()
 
 
 # ---------------------------------------------------------------------

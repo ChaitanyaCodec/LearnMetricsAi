@@ -24,46 +24,31 @@ AI Powered Educational Intelligence Platform
     <div class="hero-content">
 
         <span class="hero-badge">
-
             <i class="fa-solid fa-sparkles"></i>
-
             LearnMetrics AI
-
         </span>
 
         <h1>
-
             Welcome back,
-            {{ request.user.first_name }}
-
-            👋
-
+            {{ request.user.first_name }} 👋
         </h1>
 
         <p>
-
             Monitor your institution, manage users, oversee academic
             operations, analyze AI insights, and access powerful
             administrative tools from one centralized platform.
-
         </p>
 
         <div class="hero-actions">
 
             <button class="btn btn-primary">
-
                 <i class="fa-solid fa-rocket me-2"></i>
-
                 Get Started
-
             </button>
 
             <button class="btn btn-outline-primary">
-
                 <i class="fa-solid fa-book me-2"></i>
-
                 Documentation
-
             </button>
 
         </div>
@@ -73,9 +58,7 @@ AI Powered Educational Intelligence Platform
     <div class="hero-illustration">
 
         <div class="hero-circle">
-
             <i class="fa-solid fa-graduation-cap"></i>
-
         </div>
 
     </div>
@@ -88,6 +71,8 @@ AI Powered Educational Intelligence Platform
 
 <div class="row g-4 mb-4">
 
+    <!-- Total Teachers -->
+
     <div class="col-xl-3 col-md-6">
 
         <div class="kpi-card">
@@ -95,34 +80,28 @@ AI Powered Educational Intelligence Platform
             <div class="kpi-content">
 
                 <span class="kpi-label">
-
                     Total Teachers
-
                 </span>
 
                 <h2 class="kpi-value">
-
-                    125
-
+                    {{ dashboard.total_teachers }}
                 </h2>
 
-                <span class="kpi-change positive">
-
-                    +12%
-
+                <span class="kpi-change text-muted">
+                    Registered Teachers
                 </span>
 
             </div>
 
             <div class="kpi-icon">
-
                 <i class="fa-solid fa-chalkboard-user"></i>
-
             </div>
 
         </div>
 
     </div>
+
+    <!-- Total Students -->
 
     <div class="col-xl-3 col-md-6">
 
@@ -131,34 +110,28 @@ AI Powered Educational Intelligence Platform
             <div class="kpi-content">
 
                 <span class="kpi-label">
-
                     Total Students
-
                 </span>
 
                 <h2 class="kpi-value">
-
-                    2,540
-
+                    {{ dashboard.total_students }}
                 </h2>
 
-                <span class="kpi-change positive">
-
-                    +8%
-
+                <span class="kpi-change text-muted">
+                    Registered Students
                 </span>
 
             </div>
 
             <div class="kpi-icon">
-
                 <i class="fa-solid fa-user-graduate"></i>
-
             </div>
 
         </div>
 
     </div>
+
+    <!-- Total Admins -->
 
     <div class="col-xl-3 col-md-6">
 
@@ -167,34 +140,28 @@ AI Powered Educational Intelligence Platform
             <div class="kpi-content">
 
                 <span class="kpi-label">
-
-                    AI Requests
-
+                    Total Admins
                 </span>
 
                 <h2 class="kpi-value">
-
-                    1,240
-
+                    {{ dashboard.total_admins }}
                 </h2>
 
-                <span class="kpi-change positive">
-
-                    +25%
-
+                <span class="kpi-change text-muted">
+                    Administrator Accounts
                 </span>
 
             </div>
 
             <div class="kpi-icon">
-
-                <i class="fa-solid fa-robot"></i>
-
+                <i class="fa-solid fa-user-shield"></i>
             </div>
 
         </div>
 
     </div>
+
+    <!-- Active Users -->
 
     <div class="col-xl-3 col-md-6">
 
@@ -203,29 +170,21 @@ AI Powered Educational Intelligence Platform
             <div class="kpi-content">
 
                 <span class="kpi-label">
-
-                    Reports
-
+                    Active Users
                 </span>
 
                 <h2 class="kpi-value">
-
-                    320
-
+                    {{ dashboard.active_users }}
                 </h2>
 
-                <span class="kpi-change negative">
-
-                    -2%
-
+                <span class="kpi-change text-muted">
+                    Enabled User Accounts
                 </span>
 
             </div>
 
             <div class="kpi-icon">
-
-                <i class="fa-solid fa-chart-line"></i>
-
+                <i class="fa-solid fa-user-check"></i>
             </div>
 
         </div>
@@ -233,7 +192,6 @@ AI Powered Educational Intelligence Platform
     </div>
 
 </div>
-
 <!-- ==========================================================
      CONTENT GRID
 =========================================================== -->
@@ -247,20 +205,164 @@ AI Powered Educational Intelligence Platform
             <div class="card-header-custom">
 
                 <h5 class="card-title">
-
                     Recent Activity
-
                 </h5>
 
             </div>
 
-            <div class="card-body-custom">
+            <div class="card-body-custom p-0">
 
-                <div class="empty-widget">
+                {% if dashboard.recent_users %}
 
-                    Activity feed will appear here.
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>User</th>
+
+                                <th>Role</th>
+
+                                <th>Status</th>
+
+                                <th>Joined</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for user in dashboard.recent_users %}
+
+                            <tr>
+
+                                <!-- User -->
+
+                                <td>
+
+                                    <div class="d-flex align-items-center">
+
+                                        <div class="avatar-circle me-3">
+
+                                            {{ user.first_name|first|default:user.email|first|upper }}
+
+                                        </div>
+
+                                        <div>
+
+                                            <div class="fw-semibold">
+
+                                                {% if user.get_full_name %}
+                                                {{ user.get_full_name }}
+                                                {% else %}
+                                                {{ user.email }}
+                                                {% endif %}
+
+                                            </div>
+
+                                            <small class="text-muted">
+
+                                                {{ user.email }}
+
+                                            </small>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                                <!-- Role -->
+
+                                <td>
+
+                                    {% if user.role == user.Roles.ADMIN %}
+
+                                    <span class="badge bg-danger">
+                                        Admin
+                                    </span>
+
+                                    {% elif user.role == user.Roles.TEACHER %}
+
+                                    <span class="badge bg-primary">
+                                        Teacher
+                                    </span>
+
+                                    {% elif user.role == user.Roles.STUDENT %}
+
+                                    <span class="badge bg-success">
+                                        Student
+                                    </span>
+
+                                    {% else %}
+
+                                    <span class="badge bg-secondary">
+                                        Unknown
+                                    </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <!-- Status -->
+
+                                <td>
+
+                                    {% if user.is_active %}
+
+                                    <span class="badge bg-success">
+                                        Active
+                                    </span>
+
+                                    {% else %}
+
+                                    <span class="badge bg-secondary">
+                                        Inactive
+                                    </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <!-- Joined -->
+
+                                <td>
+
+                                    {{ user.date_joined|date:"d M Y" }}
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
 
                 </div>
+
+                {% else %}
+
+                <div class="empty-widget py-5 text-center">
+
+                    <i class="fa-solid fa-users fa-2x text-muted mb-3"></i>
+
+                    <h6>No Users Found</h6>
+
+                    <p class="text-muted mb-0">
+
+                        Users will appear here after registration.
+
+                    </p>
+
+                </div>
+
+                {% endif %}
 
             </div>
 
@@ -275,74 +377,86 @@ AI Powered Educational Intelligence Platform
             <div class="card-header-custom">
 
                 <h5 class="card-title">
-
-                    Quick Actions
-
+                    Quick Actions    ---COMING SOON 🤩🤩
                 </h5>
 
             </div>
 
-            <div class="card-body-custom">
+            <div class="row g-3">
 
-                <div class="d-grid gap-3">
-
-                    <a href="#" class="action-card">
-
-                        <div class="action-icon">
-
-                            <i class="fa-solid fa-user-plus"></i>
-
-                        </div>
-
-                        <div class="action-content">
-
-                            <h6>Add User</h6>
-
-                            <p>Create a new user account.</p>
-
-                        </div>
-
-                    </a>
-
-                    <a href="#" class="action-card">
-
-                        <div class="action-icon">
-
-                            <i class="fa-solid fa-book-open"></i>
-
-                        </div>
-
-                        <div class="action-content">
-
-                            <h6>Manage Courses</h6>
-
-                            <p>View and update courses.</p>
-
-                        </div>
-
-                    </a>
-
-                    <a href="#" class="action-card">
-
-                        <div class="action-icon">
-
-                            <i class="fa-solid fa-chart-pie"></i>
-
-                        </div>
-
-                        <div class="action-content">
-
-                            <h6>Analytics</h6>
-
-                            <p>Open analytics dashboard.</p>
-
-                        </div>
-
-                    </a>
-
-                </div>
-
+    <div class="col-md-6">
+        <a href="#" class="action-card disabled">
+            <div class="action-icon">
+                <i class="fa-solid fa-user-plus"></i>
             </div>
+            <div class="action-content">
+                <h6>Add New User</h6>
+                <p>Create a new system user.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-6">
+        <a href="#" class="action-card disabled">
+            <div class="action-icon">
+                <i class="fa-solid fa-user-graduate"></i>
+            </div>
+            <div class="action-content">
+                <h6>Add Student</h6>
+                <p>Register a new student.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-6">
+        <a href="#" class="action-card disabled">
+            <div class="action-icon">
+                <i class="fa-solid fa-chalkboard-user"></i>
+            </div>
+            <div class="action-content">
+                <h6>Add Teacher</h6>
+                <p>Create a teacher account.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-6">
+        <a href="#" class="action-card disabled">
+            <div class="action-icon">
+                <i class="fa-solid fa-file-import"></i>
+            </div>
+            <div class="action-content">
+                <h6>Import Students</h6>
+                <p>Bulk import using CSV.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-6">
+        <a href="#" class="action-card disabled">
+            <div class="action-icon">
+                <i class="fa-solid fa-file-export"></i>
+            </div>
+            <div class="action-content">
+                <h6>Export Reports</h6>
+                <p>Download institutional reports.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-6">
+        <a href="#" class="action-card disabled">
+            <div class="action-icon">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+            <div class="action-content">
+                <h6>Ask AI Assistant</h6>
+                <p>Get AI-powered educational insights.</p>
+            </div>
+        </a>
+    </div>
+
+</div>
 
         </div>
 
@@ -351,7 +465,7 @@ AI Powered Educational Intelligence Platform
 </div>
 
 <!-- ==========================================================
-     ANALYTICS
+     SYSTEM HEALTH
 =========================================================== -->
 
 <div class="row mt-4">
@@ -363,18 +477,66 @@ AI Powered Educational Intelligence Platform
             <div class="card-header-custom">
 
                 <h5 class="card-title">
-
-                    Analytics Overview
-
+                    System Health
                 </h5>
 
             </div>
 
             <div class="card-body-custom">
 
-                <div class="empty-widget">
+                <div class="row">
 
-                    Charts will be integrated in Phase 3B.
+                    <div class="col-md-6 mb-3">
+
+                        <strong>Database</strong>
+
+                        <span class="badge bg-success float-end">
+                            {{ dashboard.system_status.database }}
+                        </span>
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <strong>Authentication</strong>
+
+                        <span class="badge bg-success float-end">
+                            {{ dashboard.system_status.authentication }}
+                        </span>
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <strong>AI Assistant</strong>
+
+                        <span class="badge bg-warning text-dark float-end">
+                            {{ dashboard.system_status.ai_module }}
+                        </span>
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <strong>Background Tasks</strong>
+
+                        <span class="badge bg-warning text-dark float-end">
+                            {{ dashboard.system_status.background_tasks }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <strong>Overall Status</strong>
+
+                    <span class="badge bg-success">
+                        {{ dashboard.system_status.overall }}
+                    </span>
 
                 </div>
 
@@ -385,5 +547,6 @@ AI Powered Educational Intelligence Platform
     </div>
 
 </div>
+
 
 {% endblock %}
