@@ -1,0 +1,71 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}
+Delete Department | LearnMetrics AI
+{% endblock %}
+
+{% block navbar_title %}
+Department Management
+{% endblock %}
+
+{% block navbar_subtitle %}
+Delete department
+{% endblock %}
+
+{% block content %}
+
+<div class="card-custom">
+
+    <div class="card-header-custom">
+
+        <h4 class="text-danger mb-0">
+            Delete Department
+        </h4>
+
+    </div>
+
+    <div class="card-body-custom">
+
+        <p>
+
+            Are you sure you want to delete the department
+
+            <strong>{{ object.name }}</strong>?
+
+        </p>
+
+        <p class="text-danger">
+
+            This action cannot be undone.
+
+        </p>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <a
+                href="{% url 'academics:department-list' %}"
+                class="btn btn-secondary">
+
+                Cancel
+
+            </a>
+
+            <button
+                type="submit"
+                class="btn btn-danger">
+
+                <i class="fa-solid fa-trash me-2"></i>
+
+                Delete Department
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

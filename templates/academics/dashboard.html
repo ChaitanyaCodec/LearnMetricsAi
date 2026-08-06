@@ -1,0 +1,312 @@
+{% extends "base/dashboard_base.html" %}
+{% load static %}
+
+{% block title %}
+Academic Management | LearnMetrics AI
+{% endblock %}
+
+{% block navbar_title %}
+Academic Management
+{% endblock %}
+
+{% block navbar_subtitle %}
+Manage the academic structure of your institution
+{% endblock %}
+
+{% block content %}
+
+<!-- ==========================================================
+     HERO SECTION
+========================================================== -->
+
+<section class="dashboard-hero">
+
+    <div class="hero-content">
+
+        <span class="hero-badge">
+
+            <i class="fa-solid fa-graduation-cap"></i>
+
+            Academic Management
+
+        </span>
+
+        <h1>
+
+            Academic Structure
+
+        </h1>
+
+        <p>
+
+            Configure and manage institutions, departments,
+            courses, semesters, and subjects that form the
+            academic foundation of LearnMetrics AI.
+
+        </p>
+
+        <div class="hero-actions">
+
+            <a href="{% url 'academics:institution-create' %}"
+               class="btn btn-primary">
+
+                <i class="fa-solid fa-plus me-2"></i>
+
+                Add Institution
+
+            </a>
+
+            <a href="{% url 'academics:institution-list' %}"
+               class="btn btn-outline-primary">
+
+                <i class="fa-solid fa-building-columns me-2"></i>
+
+                View Institutions
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="hero-illustration">
+
+        <div class="hero-circle">
+
+            <i class="fa-solid fa-school"></i>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ==========================================================
+     MANAGEMENT MODULES
+========================================================== -->
+
+<div class="row g-4 mb-4">
+
+    <!-- Institution -->
+
+    <div class="col-xl-4 col-md-6">
+
+        <div class="card-custom h-100">
+
+            <div class="card-body-custom text-center">
+
+                <i class="fa-solid fa-building-columns fa-3x text-primary mb-3"></i>
+
+                <h4>Institutions</h4>
+
+                <p class="text-muted">
+
+                    Configure educational institutions.
+
+                </p>
+
+                <a href="{% url 'academics:institution-list' %}"
+                   class="btn btn-primary">
+
+                    Manage
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Department -->
+
+    <div class="col-xl-4 col-md-6">
+
+        <div class="card-custom h-100">
+
+            <div class="card-body-custom text-center">
+
+                <i class="fa-solid fa-building fa-3x text-success mb-3"></i>
+
+                <h4>Departments</h4>
+
+                <p class="text-muted">
+
+                    Organize academic departments.
+
+                </p>
+
+                <a href="{% url 'academics:department-list' %}"
+                class="btn btn-success">
+
+                    Manage
+
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+<!-- Course -->
+
+<div class="col-xl-4 col-md-6">
+
+    <div class="card-custom h-100">
+
+        <div class="card-body-custom text-center">
+
+            <i class="fa-solid fa-book fa-3x text-warning mb-3"></i>
+
+            <h4>Courses</h4>
+
+            <p class="text-muted">
+
+                Configure academic programs and degrees.
+
+            </p>
+
+            <a href="{% url 'academics:course-list' %}"
+               class="btn btn-warning text-white">
+
+                Manage
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+   <!-- Semester -->
+
+<div class="col-xl-4 col-md-6">
+
+    <div class="card-custom h-100">
+
+        <div class="card-body-custom text-center">
+
+            <i class="fa-solid fa-calendar-days fa-3x text-info mb-3"></i>
+
+            <h4>Semesters</h4>
+
+            <p class="text-muted">
+
+                Organize academic semesters.
+
+            </p>
+
+            <a href="{% url 'academics:semester-list' %}"
+               class="btn btn-info text-white">
+
+                Manage
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+   <!-- Subject -->
+
+<div class="col-xl-4 col-md-6">
+
+    <div class="card-custom h-100">
+
+        <div class="card-body-custom text-center">
+
+            <i class="fa-solid fa-book-open fa-3x text-danger mb-3"></i>
+
+            <h4>Subjects</h4>
+
+            <p class="text-muted">
+
+                Manage subjects and curriculum structure.
+
+            </p>
+
+            <a href="{% url 'academics:subject-list' %}"
+               class="btn btn-danger">
+
+                Manage
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ==========================================================
+     FUTURE FEATURES
+========================================================== -->
+
+<div class="row g-4">
+
+    <div class="col-lg-6">
+
+        <div class="card-custom">
+
+            <div class="card-header-custom">
+
+                <h5 class="card-title">
+
+                    Academic Statistics
+
+                </h5>
+
+            </div>
+
+            <div class="card-body-custom">
+
+                <div class="empty-widget">
+
+                    Institution, department, course,
+                    semester, and subject statistics
+                    will appear here.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-6">
+
+        <div class="card-custom">
+
+            <div class="card-header-custom">
+
+                <h5 class="card-title">
+
+                    AI Curriculum Assistant
+
+                </h5>
+
+            </div>
+
+            <div class="card-body-custom">
+
+                <div class="empty-widget">
+
+                    AI-powered curriculum planning
+                    and recommendations will be
+                    available in a future phase.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

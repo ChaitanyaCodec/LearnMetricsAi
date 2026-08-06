@@ -1,0 +1,160 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}
+Semester Management | LearnMetrics AI
+{% endblock %}
+
+{% block navbar_title %}
+Semester Management
+{% endblock %}
+
+{% block navbar_subtitle %}
+Manage academic semesters
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2 class="mb-1">
+
+            Semester Management
+
+        </h2>
+
+        <p class="text-muted mb-0">
+
+            View and manage all academic semesters.
+
+        </p>
+
+    </div>
+
+    <a href="{% url 'academics:semester-create' %}"
+       class="btn btn-primary">
+
+        <i class="fa-solid fa-plus me-2"></i>
+
+        Add Semester
+
+    </a>
+
+</div>
+
+<div class="card-custom">
+
+    <div class="card-header-custom">
+
+        <h5 class="card-title mb-0">
+
+            Semesters
+
+        </h5>
+
+    </div>
+
+    <div class="card-body-custom">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Course</th>
+
+                        <th>Semester</th>
+
+                        <th>Semester No.</th>
+
+                        <th>Status</th>
+
+                        <th class="text-end">Actions</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for semester in semesters %}
+
+                    <tr>
+
+                        <td>{{ semester.course }}</td>
+
+                        <td>{{ semester.name }}</td>
+
+                        <td>{{ semester.number }}</td>
+
+                        <td>
+
+                            {% if semester.is_active %}
+
+                                <span class="badge bg-success">
+
+                                    Active
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-danger">
+
+                                    Inactive
+
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td class="text-end">
+
+                            <a href="{% url 'academics:semester-update' semester.pk %}"
+                               class="btn btn-warning btn-sm">
+
+                                <i class="fa-solid fa-pen"></i>
+
+                            </a>
+
+                            <a href="{% url 'academics:semester-delete' semester.pk %}"
+                               class="btn btn-danger btn-sm">
+
+                                <i class="fa-solid fa-trash"></i>
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="5" class="text-center text-muted py-4">
+
+                            No semesters found.
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

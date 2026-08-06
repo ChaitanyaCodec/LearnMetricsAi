@@ -1,0 +1,199 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}
+{% if form.instance.pk %}
+Update Subject
+{% else %}
+Create Subject
+{% endif %}
+| LearnMetrics AI
+{% endblock %}
+
+{% block navbar_title %}
+Subject Management
+{% endblock %}
+
+{% block navbar_subtitle %}
+Manage subject information
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2>
+
+            {% if form.instance.pk %}
+                Update Subject
+            {% else %}
+                Create Subject
+            {% endif %}
+
+        </h2>
+
+        <p class="text-muted">
+
+            {% if form.instance.pk %}
+                Update subject information.
+            {% else %}
+                Add a new subject.
+            {% endif %}
+
+        </p>
+
+    </div>
+
+    <a href="{% url 'academics:subject-list' %}"
+       class="btn btn-outline-secondary">
+
+        <i class="fa-solid fa-arrow-left me-2"></i>
+
+        Back
+
+    </a>
+
+</div>
+
+<div class="card-custom">
+
+    <div class="card-header-custom">
+
+        <h5 class="card-title mb-0">
+
+            Subject Details
+
+        </h5>
+
+    </div>
+
+    <div class="card-body-custom">
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+
+                        Semester
+
+                    </label>
+
+                    {{ form.semester }}
+
+                    {{ form.semester.errors }}
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+
+                        Subject Code
+
+                    </label>
+
+                    {{ form.code }}
+
+                    {{ form.code.errors }}
+
+                </div>
+
+                <div class="col-12">
+
+                    <label class="form-label">
+
+                        Subject Name
+
+                    </label>
+
+                    {{ form.name }}
+
+                    {{ form.name.errors }}
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+
+                        Credits
+
+                    </label>
+
+                    {{ form.credits }}
+
+                    {{ form.credits.errors }}
+
+                </div>
+
+                <div class="col-12">
+
+                    <label class="form-label">
+
+                        Description
+
+                    </label>
+
+                    {{ form.description }}
+
+                    {{ form.description.errors }}
+
+                </div>
+
+                <div class="col-12">
+
+                    <div class="form-check">
+
+                        {{ form.is_active }}
+
+                        <label class="form-check-label">
+
+                            Active Subject
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <hr>
+
+            <div class="d-flex justify-content-end gap-2">
+
+                <a href="{% url 'academics:subject-list' %}"
+                   class="btn btn-secondary">
+
+                    Cancel
+
+                </a>
+
+                <button type="submit"
+                        class="btn btn-primary">
+
+                    <i class="fa-solid fa-floppy-disk me-2"></i>
+
+                    {% if form.instance.pk %}
+                        Update Subject
+                    {% else %}
+                        Save Subject
+                    {% endif %}
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
