@@ -29,7 +29,7 @@ class BaseCreateView(CreateView):
                 "service must be defined."
             )
 
-        type(self).service(**form.cleaned_data)
+        self.object = type(self).service(**form.cleaned_data)
 
         messages.success(
             self.request,
