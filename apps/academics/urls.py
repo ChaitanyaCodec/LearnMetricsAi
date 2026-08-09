@@ -44,7 +44,7 @@ urlpatterns = [
         views.InstitutionCSVTemplateView.as_view(),
         name="institution-csv-template",
     ),
-    
+
     path(
         "institutions/<int:pk>/delete/",
         views.InstitutionDeleteView.as_view(),
@@ -78,6 +78,16 @@ urlpatterns = [
         views.DepartmentDeleteView.as_view(),
         name="department-delete",
     ),
+    path(
+        "departments/import/",
+        views.DepartmentCSVImportView.as_view(),
+        name="department-import",
+    ),
+    path(
+        "departments/import/template/",
+        views.DepartmentCSVTemplateView.as_view(),
+        name="department-csv-template",
+    ),
 
 # ==========================================================
 # Course
@@ -106,6 +116,18 @@ urlpatterns = [
         views.CourseDeleteView.as_view(),
         name="course-delete",
     ),
+
+    path(
+        "courses/import/",
+        views.CourseCSVImportView.as_view(),
+        name="course-import",
+    ),
+
+    path(
+        "courses/import/template/",
+        views.CourseCSVTemplateView.as_view(),
+        name="course-csv-template",
+    ),
     # ==========================================================
     # Semester
     # ==========================================================
@@ -133,6 +155,18 @@ urlpatterns = [
         views.SemesterDeleteView.as_view(),
         name="semester-delete",
     ),
+
+    path(
+        "semesters/import/",
+        views.SemesterCSVImportView.as_view(),
+        name="semester-import",
+    ),
+
+    path(
+        "semesters/import/template/",
+        views.SemesterCSVTemplateView.as_view(),
+        name="semester-csv-template",
+    ),
     # ==========================================================
     # Subject
     # ==========================================================
@@ -159,6 +193,17 @@ urlpatterns = [
         "subjects/<int:pk>/delete/",
         views.SubjectDeleteView.as_view(),
         name="subject-delete",
+    ),
+    path(
+        "subjects/import/",
+        views.SubjectCSVImportView.as_view(),
+        name="subject-import",
+    ),
+
+    path(
+        "subjects/import/template/",
+        views.SubjectCSVTemplateView.as_view(),
+        name="subject-csv-template",
     ),
 
 ]

@@ -7,12 +7,16 @@ Handles:
 - Institution import preparation
 """
 
-import csv
-import io
-from django.core.validators import URLValidator
+from .service import (
+    CSVImportError,
+    import_rows,
+    read_csv_file,
+)
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator, validate_email
 
 from apps.academics.models import Institution
+
 
 INSTITUTION_CSV_COLUMNS = [
     "name",
@@ -23,71 +27,32 @@ INSTITUTION_CSV_COLUMNS = [
     "address",
     "is_active",
 ]
+def create_institution_from_csv_row(row):
+    """
+    Create an Institution from a validated CSV row.
+    """
 
+    return Institution.objects.create(
+        name=row["name"],
+        short_name=row["short_name"],
+        email=row["email"],
+        phone_number=row["phone_number"],
+        website=row["website"],
+        address=row["address"],
+        is_active=(
+            row["is_active"] == "1"
+        ),
+    )
 
 def read_institution_csv(uploaded_file):
     """
-    Read and validate an Institution CSV file.
-
-    Returns:
-        list[dict]: Parsed CSV rows.
+    Read an Institution CSV using the common CSV engine.
     """
 
-    if not uploaded_file.name.lower().endswith(".csv"):
-        raise ValueError(
-            "Please upload a CSV file."
-        )
-
-    content = uploaded_file.read()
-
-    try:
-        decoded = content.decode("utf-8-sig")
-
-    except UnicodeDecodeError as exc:
-        raise ValueError(
-            "CSV file must use UTF-8 encoding."
-        ) from exc
-
-    reader = csv.DictReader(
-        io.StringIO(decoded)
+    return read_csv_file(
+        uploaded_file,
+        INSTITUTION_CSV_COLUMNS,
     )
-
-    if reader.fieldnames is None:
-        raise ValueError(
-            "CSV file is empty or has no header row."
-        )
-
-    columns = [
-        column.strip()
-        for column in reader.fieldnames
-    ]
-
-    if columns != INSTITUTION_CSV_COLUMNS:
-        raise ValueError(
-            "Invalid CSV columns. "
-            f"Expected: {', '.join(INSTITUTION_CSV_COLUMNS)}"
-        )
-
-    rows = []
-
-    for row_number, row in enumerate(
-        reader,
-        start=2,
-    ):
-
-        cleaned_row = {
-            key: (
-                value.strip()
-                if value is not None
-                else ""
-            )
-            for key, value in row.items()
-        }
-
-        cleaned_row["row_number"] = row_number
-        rows.append(cleaned_row)
-
-    return rows
 
 def validate_institution_rows(rows):
     """
