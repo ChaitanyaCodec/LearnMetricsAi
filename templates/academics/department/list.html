@@ -43,29 +43,13 @@ Manage Department master data
 
 </div>
 
+
 <!-- ==========================================================
-     MESSAGES
+     TOOLBAR
 =========================================================== -->
 
-{% if messages %}
+{% include "components/crud/toolbar.html" with show_institution_filter=True show_status_filter=True %}
 
-    {% for message in messages %}
-
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-
-            {{ message }}
-
-            <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="alert">
-            </button>
-
-        </div>
-
-    {% endfor %}
-
-{% endif %}
 
 <!-- ==========================================================
      DEPARTMENT TABLE
@@ -93,15 +77,25 @@ Manage Department master data
 
                     <tr>
 
-                        <th>Name</th>
+                        <th>
+                            Name
+                        </th>
 
-                        <th>Short Name</th>
+                        <th>
+                            Code
+                        </th>
 
-                        <th>Email</th>
+                        <th>
+                            Institution
+                        </th>
 
-                        <th>Phone</th>
+                        <th>
+                            Description
+                        </th>
 
-                        <th>Status</th>
+                        <th>
+                            Status
+                        </th>
 
                         <th class="text-end">
                             Actions
@@ -111,35 +105,64 @@ Manage Department master data
 
                 </thead>
 
+
                 <tbody>
 
                     {% for department in departments %}
 
                     <tr>
 
-                        <td>
-
-                            {{ department.name }}
-
-                        </td>
+                        <!-- Name -->
 
                         <td>
 
-                            {{ department.short_name }}
+                            <strong>
+                                {{ department.name }}
+                            </strong>
 
                         </td>
+
+
+                        <!-- Code -->
 
                         <td>
 
-                            {{ department.email }}
+                            <span class="text-muted">
+                                {{ department.code }}
+                            </span>
 
                         </td>
+
+
+                        <!-- Institution -->
 
                         <td>
 
-                            {{ department.phone_number }}
+                            {{ department.institution.name }}
 
                         </td>
+
+
+                        <!-- Description -->
+
+                        <td>
+
+                            {% if department.description %}
+
+                                {{ department.description|truncatechars:60 }}
+
+                            {% else %}
+
+                                <span class="text-muted">
+                                    —
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Status -->
 
                         <td>
 
@@ -151,7 +174,7 @@ Manage Department master data
 
                             {% else %}
 
-                                <span class="badge bg-danger">
+                                <span class="badge bg-secondary">
                                     Inactive
                                 </span>
 
@@ -159,17 +182,27 @@ Manage Department master data
 
                         </td>
 
+
+                        <!-- Actions -->
+
                         <td class="text-end">
 
-                            <a href="{% url 'academics:department-update' department.pk %}"
-                               class="btn btn-sm btn-outline-primary">
+                            <a
+                                href="{% url 'academics:department-update' department.pk %}"
+                                class="btn btn-sm btn-outline-primary"
+                                title="Edit Department"
+                            >
 
                                 <i class="fa-solid fa-pen-to-square"></i>
 
                             </a>
 
-                            <a href="{% url 'academics:department-delete' department.pk %}"
-                               class="btn btn-sm btn-outline-danger">
+
+                            <a
+                                href="{% url 'academics:department-delete' department.pk %}"
+                                class="btn btn-sm btn-outline-danger"
+                                title="Delete Department"
+                            >
 
                                 <i class="fa-solid fa-trash"></i>
 
@@ -189,18 +222,26 @@ Manage Department master data
 
         {% else %}
 
+        <!-- ==================================================
+             EMPTY STATE
+        =================================================== -->
+
         <div class="text-center py-5">
 
             <i class="fa-solid fa-building-columns fa-3x text-muted mb-3"></i>
 
-            <h5>No Departments Found</h5>
+            <h5>
+                No Departments Found
+            </h5>
 
             <p class="text-muted">
-                Create your first department to get started.
+                No departments match your current search or filters.
             </p>
 
-            <a href="{% url 'academics:department-create' %}"
-               class="btn btn-primary">
+            <a
+                href="{% url 'academics:department-create' %}"
+                class="btn btn-primary"
+            >
 
                 <i class="fa-solid fa-plus me-2"></i>
 
@@ -215,5 +256,12 @@ Manage Department master data
     </div>
 
 </div>
+
+
+<!-- ==========================================================
+     PAGINATION
+=========================================================== -->
+
+{% include "components/crud/pagination.html" %}
 
 {% endblock %}

@@ -1,0 +1,344 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}
+Import Institutions | LearnMetrics AI
+{% endblock %}
+
+{% block navbar_title %}
+Institution CSV Import
+{% endblock %}
+
+{% block navbar_subtitle %}
+Import institutions in bulk using CSV
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2 class="mb-1">
+            Import Institutions
+        </h2>
+
+        <p class="text-muted mb-0">
+            Upload a CSV file to add institutions in bulk.
+        </p>
+
+    </div>
+
+    <a
+        href="{% url 'academics:institution-list' %}"
+        class="btn btn-outline-secondary"
+    >
+
+        <i class="fa-solid fa-arrow-left me-2"></i>
+
+        Back to Institutions
+
+    </a>
+     <a
+        href="{% url 'academics:institution-csv-template' %}"
+        class="btn btn-outline-primary"
+    >
+    <i class="fa-solid fa-file-csv me-2"></i>
+
+        Download CSV Template
+    </a>
+
+</div>
+
+
+<div class="card-custom">
+
+    <div class="card-header-custom">
+
+        <h5 class="card-title mb-0">
+            Upload Institution CSV
+        </h5>
+
+    </div>
+
+
+    <div class="card-body-custom">
+
+        <div class="alert alert-info">
+
+            <i class="fa-solid fa-circle-info me-2"></i>
+
+            <strong>CSV Format</strong>
+
+            <p class="mb-0 mt-2">
+                Your CSV must contain the exact columns:
+            </p>
+
+            <code>
+                name, short_name, email, phone_number,
+                website, address, is_active
+            </code>
+
+        </div>
+
+
+        {% if form.non_field_errors %}
+
+            <div class="alert alert-danger">
+
+                {{ form.non_field_errors }}
+
+            </div>
+
+        {% endif %}
+
+
+        <form
+            method="post"
+            enctype="multipart/form-data"
+        >
+
+            {% csrf_token %}
+
+
+            <div class="mb-4">
+
+                <label
+                    for="{{ form.csv_file.id_for_label }}"
+                    class="form-label"
+                >
+
+                    {{ form.csv_file.label }}
+
+                </label>
+
+
+                {{ form.csv_file }}
+
+
+                {% if form.csv_file.help_text %}
+
+                    <div class="form-text">
+
+                        {{ form.csv_file.help_text }}
+
+                    </div>
+
+                {% endif %}
+
+
+                {% if form.csv_file.errors %}
+
+                    <div class="text-danger mt-2">
+
+                        {{ form.csv_file.errors }}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="d-flex gap-2">
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+
+                    <i class="fa-solid fa-upload me-2"></i>
+
+                    Upload CSV
+
+                </button>
+
+
+                <a
+                    href="{% url 'academics:institution-list' %}"
+                    class="btn btn-outline-secondary"
+                >
+
+                    Cancel
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+{% if preview_rows %}
+
+<div class="card-custom mt-4">
+
+    <div class="card-header-custom">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <h5 class="card-title mb-0">
+                Import Preview
+            </h5>
+
+            <span class="badge bg-primary">
+                {{ preview_count }} rows
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div class="card-body-custom">
+
+        <div class="alert alert-success">
+
+            <i class="fa-solid fa-circle-check me-2"></i>
+
+            CSV validation successful.
+            Review the data below before importing.
+
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Row</th>
+                        <th>Name</th>
+                        <th>Short Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Website</th>
+                        <th>Address</th>
+                        <th>Status</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for row in preview_rows %}
+
+                    <tr>
+
+                        <td>
+                            {{ row.row_number }}
+                        </td>
+
+                        <td>
+                            {{ row.name }}
+                        </td>
+
+                        <td>
+                            {{ row.short_name }}
+                        </td>
+
+                        <td>
+                            {{ row.email }}
+                        </td>
+
+                        <td>
+                            {{ row.phone_number }}
+                        </td>
+
+                        <td>
+                            {{ row.website|default:"—" }}
+                        </td>
+
+                        <td>
+                            {{ row.address|default:"—" }}
+                        </td>
+
+                        <td>
+
+                            {% if row.is_active == "1" %}
+
+                                <span class="badge bg-success">
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary">
+                                    Inactive
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- Import button will be added in the next step -->
+
+        <div class="alert alert-warning mt-3 mb-0">
+
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+
+            These records have only been validated.
+            They have <strong>not</strong> been saved to the database.
+
+        </div>
+        <form
+    method="post"
+    class="mt-4"
+>
+    {% csrf_token %}
+
+    <input
+        type="hidden"
+        name="action"
+        value="confirm_import"
+    >
+
+    <div class="d-flex gap-2">
+
+        <button
+            type="submit"
+            class="btn btn-success"
+        >
+
+            <i class="fa-solid fa-database me-2"></i>
+
+            Confirm Import
+
+        </button>
+
+        <a
+            href="{% url 'academics:institution-list' %}"
+            class="btn btn-outline-secondary"
+        >
+
+            Cancel
+
+        </a>
+
+    </div>
+
+</form>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+{% endblock %}

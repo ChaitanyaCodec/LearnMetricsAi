@@ -2,10 +2,25 @@
 Views for the Academics application.
 """
 
-from django.urls import reverse_lazy
-from django.views.generic import ListView, TemplateView
+from urllib import request
 
+from django.urls import reverse_lazy
+from django.views.generic import  TemplateView
+
+from django.contrib import messages
+from django.shortcuts import redirect, render
+from django.views import View
+from django.db import IntegrityError, transaction
+
+
+from django.http import HttpResponse
+
+from .csv.institution import (
+    read_institution_csv,
+    validate_institution_rows,
+)
 from apps.core.views.crud import (
+    BaseListView,
     BaseCreateView,
     BaseUpdateView,
     BaseDeleteView,
@@ -17,6 +32,7 @@ from .forms import (
     CourseForm,
     SemesterForm,
     SubjectForm,
+    InstitutionCSVImportForm,
 )
 
 from .models import (
@@ -74,17 +90,43 @@ class AcademicsDashboardView(TemplateView):
 # Institution Views
 # ==========================================================
 
-class InstitutionListView(ListView):
+class InstitutionListView(BaseListView):
 
     model = Institution
 
-    template_name = "academics/institution/list.html"
+    selector = get_institutions
+
+    template_name = (
+        "academics/institution/list.html"
+    )
 
     context_object_name = "institutions"
 
-    def get_queryset(self):
-        return get_institutions()
+    page_title = "Institution Management"
 
+    page_subtitle = "Manage institutions"
+
+    filter_parameters = (
+        "is_active",
+    )
+
+    default_ordering = (
+        "name",
+    )
+
+    allowed_ordering = (
+        "name",
+        "-name",
+        "created_at",
+        "-created_at",
+    )
+
+    ordering_labels = {
+        "name": "Name (A-Z)",
+        "-name": "Name (Z-A)",
+        "created_at": "Oldest First",
+        "-created_at": "Newest First",
+    }
 
 class InstitutionCreateView(BaseCreateView):
 
@@ -145,17 +187,54 @@ class InstitutionDeleteView(BaseDeleteView):
 # Department Views
 # ==========================================================
 
-class DepartmentListView(ListView):
+class DepartmentListView(BaseListView):
 
     model = Department
 
-    template_name = "academics/department/list.html"
+    selector = get_departments
+
+    template_name = (
+        "academics/department/list.html"
+    )
 
     context_object_name = "departments"
 
-    def get_queryset(self):
-        return get_departments()
+    page_title = "Department Management"
 
+    page_subtitle = "Manage departments"
+
+    filter_parameters = (
+        "institution",
+        "is_active",
+    )
+
+    filter_choices = {
+        "institution": Institution.objects.filter(
+            is_active=True
+        ).order_by("name"),
+    }
+
+    default_ordering = (
+        "name",
+    )
+
+    allowed_ordering = (
+        "name",
+        "-name",
+        "code",
+        "-code",
+        "created_at",
+        "-created_at",
+    )
+
+    ordering_labels = {
+        "name": "Name (A-Z)",
+        "-name": "Name (Z-A)",
+        "code": "Code (A-Z)",
+        "-code": "Code (Z-A)",
+        "created_at": "Oldest First",
+        "-created_at": "Newest First",
+    }
 
 class DepartmentCreateView(BaseCreateView):
 
@@ -215,18 +294,58 @@ class DepartmentDeleteView(BaseDeleteView):
 # ==========================================================
 # Course Views
 # ==========================================================
-
-class CourseListView(ListView):
+class CourseListView(BaseListView):
 
     model = Course
+
+    selector = get_courses
 
     template_name = "academics/course/list.html"
 
     context_object_name = "courses"
 
-    def get_queryset(self):
-        return get_courses()
+    page_title = "Course Management"
 
+    page_subtitle = "Manage academic courses"
+
+    filter_parameters = (
+        "department",
+        "is_active",
+    )
+
+    filter_choices = {
+        "department": Department.objects.filter(
+            is_active=True
+        ).select_related(
+            "institution"
+        ).order_by("name"),
+    }
+
+    default_ordering = (
+        "name",
+    )
+
+    allowed_ordering = (
+        "name",
+        "-name",
+        "code",
+        "-code",
+        "duration",
+        "-duration",
+        "created_at",
+        "-created_at",
+    )
+
+    ordering_labels = {
+        "name": "Name (A-Z)",
+        "-name": "Name (Z-A)",
+        "code": "Code (A-Z)",
+        "-code": "Code (Z-A)",
+        "duration": "Duration",
+        "-duration": "Duration",
+        "created_at": "Oldest First",
+        "-created_at": "Newest First",
+    }
 
 class CourseCreateView(BaseCreateView):
 
@@ -285,20 +404,57 @@ class CourseDeleteView(BaseDeleteView):
     # ==========================================================
 # Semester Views
 # ==========================================================
-
-class SemesterListView(ListView):
-    """
-    Display all semesters.
-    """
+class SemesterListView(BaseListView):
 
     model = Semester
 
-    template_name = "academics/semester/list.html"
+    selector = get_semesters
+
+    template_name = (
+        "academics/semester/list.html"
+    )
 
     context_object_name = "semesters"
 
-    def get_queryset(self):
-        return get_semesters()
+    page_title = "Semester Management"
+
+    page_subtitle = "Manage academic semesters"
+
+    filter_parameters = (
+        "course",
+        "is_active",
+    )
+
+    filter_choices = {
+        "course": Course.objects.filter(
+            is_active=True
+        ).select_related(
+            "department"
+        ).order_by("name"),
+    }
+
+    default_ordering = (
+        "course__name",
+        "semester_number",
+    )
+
+    allowed_ordering = (
+        "semester_number",
+        "-semester_number",
+        "course__name",
+        "-course__name",
+        "created_at",
+        "-created_at",
+    )
+
+    ordering_labels = {
+        "semester_number": "Semester Number",
+        "-semester_number": "Semester Number (Descending)",
+        "course__name": "Course (A-Z)",
+        "-course__name": "Course (Z-A)",
+        "created_at": "Oldest First",
+        "-created_at": "Newest First",
+    }
 
 
 class SemesterCreateView(BaseCreateView):
@@ -368,21 +524,63 @@ class SemesterDeleteView(BaseDeleteView):
 # ==========================================================
 # Subject Views
 # ==========================================================
-
-class SubjectListView(ListView):
-    """
-    Display all subjects.
-    """
+class SubjectListView(BaseListView):
 
     model = Subject
 
-    template_name = "academics/subject/list.html"
+    selector = get_subjects
+
+    template_name = (
+        "academics/subject/list.html"
+    )
 
     context_object_name = "subjects"
 
-    def get_queryset(self):
-        return get_subjects()
+    page_title = "Subject Management"
 
+    page_subtitle = "Manage academic subjects"
+
+    filter_parameters = (
+        "semester",
+        "is_active",
+    )
+
+    filter_choices = {
+        "semester": Semester.objects.filter(
+            is_active=True
+        ).select_related(
+            "course"
+        ).order_by(
+            "course__name",
+            "semester_number",
+        ),
+    }
+
+    default_ordering = (
+        "name",
+    )
+
+    allowed_ordering = (
+        "name",
+        "-name",
+        "code",
+        "-code",
+        "credits",
+        "-credits",
+        "created_at",
+        "-created_at",
+    )
+
+    ordering_labels = {
+        "name": "Name (A-Z)",
+        "-name": "Name (Z-A)",
+        "code": "Code (A-Z)",
+        "-code": "Code (Z-A)",
+        "credits": "Credits",
+        "-credits": "Credits",
+        "created_at": "Oldest First",
+        "-created_at": "Newest First",
+    }
 
 class SubjectCreateView(BaseCreateView):
     """
@@ -446,3 +644,207 @@ class SubjectDeleteView(BaseDeleteView):
     success_message = (
         "Subject deleted successfully."
     )
+
+
+# ==========================================================
+# Institution CSV Import
+# ==========================================================
+
+class InstitutionCSVImportView(View):
+    """
+    Upload and validate Institution CSV files.
+
+    This view only prepares the data for preview.
+    It does not save anything to the database.
+    """
+
+    template_name = (
+        "academics/csv/institution_import.html"
+    )
+
+    def get(self, request, *args, **kwargs):
+
+        form = InstitutionCSVImportForm()
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "form": form,
+            },
+        )
+
+    def post(self, request, *args, **kwargs):
+
+        # ======================================================
+        # CONFIRM IMPORT
+        # ======================================================
+
+        if request.POST.get("action") == "confirm_import":
+
+            rows = request.session.get(
+                "institution_csv_rows"
+            )
+
+            if not rows:
+
+                messages.error(
+                    request,
+                    "No validated CSV data was found. "
+                    "Please upload the CSV again.",
+                )
+
+                return redirect(
+                    "academics:institution-import"
+                )
+
+            try:
+
+                with transaction.atomic():
+
+                    for row in rows:
+
+                        Institution.objects.create(
+                            name=row["name"],
+                            short_name=row["short_name"],
+                            email=row["email"],
+                            phone_number=row["phone_number"],
+                            website=row["website"],
+                            address=row["address"],
+                            is_active=(
+                                row["is_active"] == "1"
+                            ),
+                        )
+
+            except IntegrityError:
+
+                messages.error(
+                    request,
+                    (
+                        "Import failed because one or more "
+                        "records violate a database constraint. "
+                        "No institutions were imported."
+                    ),
+                )
+
+                return redirect(
+                    "academics:institution-import"
+                )
+
+            except Exception:
+
+                messages.error(
+                    request,
+                    (
+                        "An unexpected error occurred while "
+                        "importing the institutions. "
+                        "No institutions were imported."
+                    ),
+                )
+
+                return redirect(
+                    "academics:institution-import"
+                )
+            # Remove imported data from session
+            request.session.pop(
+                "institution_csv_rows",
+                None,
+            )
+
+            messages.success(
+                request,
+                f"{len(rows)} institutions imported successfully.",
+            )
+
+            return redirect(
+                "academics:institution-list"
+            )
+
+        # ======================================================
+        # CSV UPLOAD
+        # ======================================================
+
+        form = InstitutionCSVImportForm(
+            request.POST,
+            request.FILES,
+        )
+
+        if not form.is_valid():
+
+            return render(
+                request,
+                self.template_name,
+                {
+                    "form": form,
+                },
+            )
+
+        uploaded_file = form.cleaned_data[
+            "csv_file"
+        ]
+
+        try:
+
+            rows = read_institution_csv(
+                uploaded_file
+            )
+
+            validate_institution_rows(
+                rows
+            )
+
+        except ValueError as exc:
+
+            form.add_error(
+                "csv_file",
+                str(exc),
+            )
+
+            return render(
+                request,
+                self.template_name,
+                {
+                    "form": form,
+                },
+            )
+
+        request.session["institution_csv_rows"] = rows
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "form": form,
+                "preview_rows": rows,
+                "preview_count": len(rows),
+            },
+        )
+
+class InstitutionCSVTemplateView(View):
+    """
+    Download the fixed Institution CSV template.
+    """
+
+    def get(self, request, *args, **kwargs):
+
+        from .csv.institution import (
+            generate_institution_csv_template,
+        )
+
+        csv_content = (
+            generate_institution_csv_template()
+        )
+
+        response = HttpResponse(
+            csv_content,
+            content_type="text/csv",
+        )
+
+        response[
+            "Content-Disposition"
+        ] = (
+            'attachment; '
+            'filename="institution_template.csv"'
+        )
+
+        return response

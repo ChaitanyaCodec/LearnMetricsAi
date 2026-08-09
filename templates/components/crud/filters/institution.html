@@ -1,0 +1,31 @@
+<div class="col-md-3">
+
+    <label class="form-label">
+        Institution
+    </label>
+
+    <select
+        name="institution"
+        class="form-select"
+    >
+
+        <option value="">
+            All Institutions
+        </option>
+
+        {% for institution in filter_choices.institution %}
+
+            <option
+                value="{{ institution.pk }}"
+                {% if filters.institution == institution.pk|stringformat:"s" %}
+                    selected
+                {% endif %}
+            >
+                {{ institution.name }}
+            </option>
+
+        {% endfor %}
+
+    </select>
+
+</div>

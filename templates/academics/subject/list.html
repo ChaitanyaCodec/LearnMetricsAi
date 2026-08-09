@@ -42,6 +42,7 @@ Manage academic subjects
     </a>
 
 </div>
+{% include "components/crud/toolbar.html" with show_semester_filter=True show_status_filter=True %}
 
 <div class="card-custom">
 
@@ -161,5 +162,6 @@ Manage academic subjects
     </div>
 
 </div>
+{% include "components/crud/pagination.html" %}
 
 {% endblock %}

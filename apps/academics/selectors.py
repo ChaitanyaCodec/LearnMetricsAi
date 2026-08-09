@@ -12,7 +12,8 @@ Rules:
 
 from __future__ import annotations
 
-from django.db.models import QuerySet
+from django.db.models import QuerySet,Q
+from apps.core.utils.query import apply_filters
 
 from .models import (
     Institution,
@@ -26,12 +27,31 @@ from .models import (
 #     Institution Selectors
 #--------------------------------
 
-def get_institutions() -> QuerySet[Institution]:
-    """
-    Return all institutions.
-    """
 
-    return Institution.objects.order_by("name")
+
+def get_institutions(
+    *,
+    search=None,
+    filters=None,
+):
+    queryset = Institution.objects.all()
+
+    if search:
+        queryset = queryset.filter(
+            Q(name__icontains=search)
+            | Q(short_name__icontains=search)
+            | Q(email__icontains=search)
+        )
+
+    queryset = apply_filters(
+        queryset,
+        filters,
+        {
+            "is_active": "is_active",
+        },
+    )
+
+    return queryset
 
 def get_active_institutions() -> QuerySet[Institution]:
     """
@@ -45,17 +65,36 @@ def get_active_institutions() -> QuerySet[Institution]:
 #--------------------------------
 #     Department Selectors
 #--------------------------------
-
-def get_departments() -> QuerySet[Department]:
+def get_departments(
+    *,
+    search=None,
+    filters=None,
+):
     """
-    Return all departments.
+    Return departments with optional search and filters.
     """
 
-    return (
-        Department.objects
-        .select_related("institution")
-        .order_by("name")
+    queryset = Department.objects.select_related(
+        "institution"
     )
+
+    if search:
+        queryset = queryset.filter(
+            Q(name__icontains=search)
+            | Q(code__icontains=search)
+            | Q(institution__name__icontains=search)
+        )
+
+    queryset = apply_filters(
+        queryset,
+        filters,
+        {
+            "institution": "institution_id",
+            "is_active": "is_active",
+        },
+    )
+
+    return queryset
 
 def get_active_departments() -> QuerySet[Department]:
     """
@@ -73,17 +112,40 @@ def get_active_departments() -> QuerySet[Department]:
 #     Course Selectors
 #-------------------------------
 
-
-def get_courses() -> QuerySet[Course]:
+def get_courses(
+    *,
+    search=None,
+    filters=None,
+):
     """
-    Return all courses.
+    Return courses with optional search and filters.
     """
 
-    return (
-        Course.objects
-        .select_related("department")
-        .order_by("name")
+    queryset = Course.objects.select_related(
+        "department",
+        "department__institution",
     )
+
+    if search:
+        queryset = queryset.filter(
+            Q(name__icontains=search)
+            | Q(code__icontains=search)
+            | Q(department__name__icontains=search)
+            | Q(
+                department__institution__name__icontains=search
+            )
+        )
+
+    queryset = apply_filters(
+        queryset,
+        filters,
+        {
+            "department": "department_id",
+            "is_active": "is_active",
+        },
+    )
+
+    return queryset
 
 def get_active_courses() -> QuerySet[Course]:
     """
@@ -101,25 +163,39 @@ def get_active_courses() -> QuerySet[Course]:
 # Semester Selectors
 # ==========================================================
 
-def get_semesters() -> QuerySet[Semester]:
+
+def get_semesters(
+    *,
+    search=None,
+    filters=None,
+):
     """
-    Return all semesters.
+    Return semesters with optional search and filters.
     """
 
-    return (
-        Semester.objects
-        .select_related(
-            "course",
-            "course__department",
-            "course__department__institution",
-        )
-        .order_by(
-            "course",
-            "semester_number",
-        )
+    queryset = Semester.objects.select_related(
+        "course",
+        "course__department",
+        "course__department__institution",
     )
 
+    if search:
+        queryset = queryset.filter(
+            Q(name__icontains=search)
+            | Q(semester_number__icontains=search)
+            | Q(course__name__icontains=search)
+        )
 
+    queryset = apply_filters(
+        queryset,
+        filters,
+        {
+            "course": "course_id",
+            "is_active": "is_active",
+        },
+    )
+
+    return queryset
 def get_active_semesters() -> QuerySet[Semester]:
     """
     Return active semesters.
@@ -143,23 +219,42 @@ def get_active_semesters() -> QuerySet[Semester]:
 # Subject Selectors
 # ==========================================================
 
-def get_subjects() -> QuerySet[Subject]:
+
+
+def get_subjects(
+    *,
+    search=None,
+    filters=None,
+):
     """
-    Return all subjects.
+    Return subjects with optional search and filters.
     """
 
-    return (
-        Subject.objects
-        .select_related(
-            "semester",
-            "semester__course",
-            "semester__course__department",
-            "semester__course__department__institution",
-        )
-        .order_by("name")
+    queryset = Subject.objects.select_related(
+        "semester",
+        "semester__course",
+        "semester__course__department",
+        "semester__course__department__institution",
     )
 
+    if search:
+        queryset = queryset.filter(
+            Q(name__icontains=search)
+            | Q(code__icontains=search)
+            | Q(semester__course__name__icontains=search)
+            | Q(semester__name__icontains=search)
+        )
 
+    queryset = apply_filters(
+        queryset,
+        filters,
+        {
+            "semester": "semester_id",
+            "is_active": "is_active",
+        },
+    )
+
+    return queryset
 def get_active_subjects() -> QuerySet[Subject]:
     """
     Return active subjects.

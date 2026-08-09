@@ -1,0 +1,133 @@
+<div class="card-custom mb-4">
+
+    <div class="card-body-custom">
+
+        <form method="get">
+
+            <div class="row g-3 align-items-end">
+
+                <!-- Search -->
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Search
+                    </label>
+
+                    <input
+                        type="text"
+                        name="q"
+                        value="{{ search }}"
+                        class="form-control"
+                        placeholder="Search..."
+                    >
+
+                </div>
+
+
+                <!-- Extra Filters -->
+{% if show_institution_filter %}
+
+    {% include "components/crud/filters/institution.html" %}
+
+{% endif %}
+
+
+{% if show_department_filter %}
+
+    {% include "components/crud/filters/department.html" %}
+
+{% endif %}
+
+
+{% if show_course_filter %}
+
+    {% include "components/crud/filters/course.html" %}
+
+{% endif %}
+
+
+{% if show_status_filter %}
+
+    {% include "components/crud/filters/status.html" %}
+
+{% endif %}
+
+{% if show_semester_filter %}
+
+    {% include "components/crud/filters/semester.html" %}
+
+{% endif %}
+
+                <!-- Ordering -->
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Sort By
+                    </label>
+
+                    <select
+                        name="ordering"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            Default
+                        </option>
+
+                        {% for value, label in ordering_options %}
+
+                            <option
+                                value="{{ value }}"
+                                {% if ordering == value %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ label }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- Actions -->
+                <div class="col-md-auto">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+
+                        <i class="fa-solid fa-filter me-2"></i>
+
+                        Apply
+
+                    </button>
+
+                </div>
+
+
+                <div class="col-md-auto">
+
+                    <a
+                        href="{{ request.path }}"
+                        class="btn btn-outline-secondary"
+                    >
+
+                        <i class="fa-solid fa-rotate-left me-2"></i>
+
+                        Reset
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>

@@ -14,6 +14,8 @@ urlpatterns = [
     # Institution
     # ==========================================================
 
+ 
+
     path(
         "institutions/",
         views.InstitutionListView.as_view(),
@@ -27,11 +29,22 @@ urlpatterns = [
     ),
 
     path(
+        "institutions/import/",
+        views.InstitutionCSVImportView.as_view(),
+        name="institution-import",
+    ),
+
+    path(
         "institutions/<int:pk>/update/",
         views.InstitutionUpdateView.as_view(),
         name="institution-update",
     ),
-
+    path(
+        "institutions/import/template/",
+        views.InstitutionCSVTemplateView.as_view(),
+        name="institution-csv-template",
+    ),
+    
     path(
         "institutions/<int:pk>/delete/",
         views.InstitutionDeleteView.as_view(),

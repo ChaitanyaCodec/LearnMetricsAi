@@ -279,3 +279,27 @@ class SubjectForm(forms.ModelForm):
                 attrs={"class": "form-check-input"}
             ),
         }
+
+
+# ==========================================================
+# Institution CSV Import Form
+# ==========================================================
+
+class InstitutionCSVImportForm(forms.Form):
+    """
+    Form for uploading an Institution CSV file.
+    """
+
+    csv_file = forms.FileField(
+        label="Institution CSV File",
+        help_text=(
+            "Upload a UTF-8 CSV file using the "
+            "provided Institution template."
+        ),
+        widget=forms.ClearableFileInput(
+            attrs={
+                "class": "form-control",
+                "accept": ".csv,text/csv",
+            }
+        ),
+    )

@@ -1,0 +1,31 @@
+<div class="col-md-3">
+
+    <label class="form-label">
+        Department
+    </label>
+
+    <select
+        name="department"
+        class="form-select"
+    >
+
+        <option value="">
+            All Departments
+        </option>
+
+        {% for department in filter_choices.department %}
+
+            <option
+                value="{{ department.pk }}"
+                {% if filters.department == department.pk|stringformat:"s" %}
+                    selected
+                {% endif %}
+            >
+                {{ department.name }}
+            </option>
+
+        {% endfor %}
+
+    </select>
+
+</div>

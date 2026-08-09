@@ -1,0 +1,31 @@
+<div class="col-md-3">
+
+    <label class="form-label">
+        Course
+    </label>
+
+    <select
+        name="course"
+        class="form-select"
+    >
+
+        <option value="">
+            All Courses
+        </option>
+
+        {% for course in filter_choices.course %}
+
+            <option
+                value="{{ course.pk }}"
+                {% if filters.course == course.pk|stringformat:"s" %}
+                    selected
+                {% endif %}
+            >
+                {{ course.name }}
+            </option>
+
+        {% endfor %}
+
+    </select>
+
+</div>

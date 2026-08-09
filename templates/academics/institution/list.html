@@ -66,7 +66,78 @@ Manage institution master data
     {% endfor %}
 
 {% endif %}
+<!-- ==========================================================
+     SEARCH FORM
+=========================================================== -->
+<!-- <form method="get" class="row mb-3">
 
+    <div class="col-md-4">
+
+        <input
+            type="text"
+            name="q"
+            value="{{ search }}"
+            class="form-control"
+            placeholder="Search institution...">
+
+    </div> -->
+
+    <!-- <div class="col-auto">
+
+        <button
+            class="btn btn-primary"
+            type="submit">
+
+            <i class="fa-solid fa-magnifying-glass me-2"></i>
+
+            Search
+
+        </button>
+
+    </div>
+
+    {% if search %}
+
+    <div class="col-auto">
+
+        <a
+            href="{% url 'academics:institution-list' %}"
+            class="btn btn-outline-secondary">
+
+            Clear
+
+        </a>
+
+    </div>
+
+    {% endif %} -->
+
+</form>
+
+<!-- ==========================================================
+     FILTERS
+=========================================================== -->
+{% include "components/crud/toolbar.html" with show_status_filter=True %}
+<!-- ==========================================================
+     Result Summaary
+=========================================================== -->
+<p class="text-muted">
+
+    Showing
+
+    {{ page_obj.start_index }}
+
+    to
+
+    {{ page_obj.end_index }}
+
+    of
+
+    {{ paginator.count }}
+
+    institutions
+
+</p>
 <!-- ==========================================================
      INSTITUTION TABLE
 =========================================================== -->
@@ -215,5 +286,12 @@ Manage institution master data
     </div>
 
 </div>
+
+<!-- ==========================================================
+     PAGINATION
+=========================================================== -->
+{% include "components/crud/pagination.html" %}
+
+
 
 {% endblock %}
