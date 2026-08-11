@@ -9,8 +9,10 @@ Handles:
 
 from .service import (
     CSVImportError,
-    import_rows,
     read_csv_file,
+    generate_csv_template,
+    import_rows
+   
 )
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator, validate_email
@@ -224,17 +226,8 @@ def validate_institution_rows(rows):
 def generate_institution_csv_template():
     """
     Generate the fixed Institution CSV template.
-
-    Returns:
-        str: CSV content.
     """
 
-    output = io.StringIO()
-
-    writer = csv.writer(output)
-
-    writer.writerow(
+    return generate_csv_template(
         INSTITUTION_CSV_COLUMNS
     )
-
-    return output.getvalue()

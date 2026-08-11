@@ -5,7 +5,10 @@ Department CSV import functionality.
 from __future__ import annotations
 
 from .service import (
+    generate_csv_template,
     read_csv_file,
+    validate_active_status,
+    validate_required_fields,
 )
 
 from ..models import (
@@ -59,37 +62,21 @@ def validate_department_rows(rows):
             "is_active"
         ].strip()
 
-        if not institution_name:
+        validate_required_fields(
+            row,
+            (
+                "institution",
+                "name",
+                "code",
+            ),
+            {
+                "institution": "Institution",
+                "name": "Department name",
+                "code": "Department code",
+            },
+        )
 
-            raise ValueError(
-                f"Row {row_number}: "
-                "Institution is required."
-            )
-
-        if not name:
-
-            raise ValueError(
-                f"Row {row_number}: "
-                "Department name is required."
-            )
-
-        if not code:
-
-            raise ValueError(
-                f"Row {row_number}: "
-                "Department code is required."
-            )
-
-        if is_active not in (
-            "0",
-            "1",
-        ):
-
-            raise ValueError(
-                f"Row {row_number}: "
-                "is_active must be 0 or 1."
-            )
-
+        validate_active_status(row)
         try:
 
             institution = Institution.objects.get(
@@ -166,12 +153,6 @@ def generate_department_csv_template():
     Generate the fixed Department CSV template.
     """
 
-    output = io.StringIO()
-
-    writer = csv.writer(output)
-
-    writer.writerow(
+    return generate_csv_template(
         DEPARTMENT_CSV_COLUMNS
     )
-
-    return output.getvalue()

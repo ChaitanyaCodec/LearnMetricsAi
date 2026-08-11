@@ -163,3 +163,80 @@ def import_rows(
 
     return imported_count
 
+def validate_required_fields(
+    row,
+    required_fields,
+    labels=None,
+):
+    """
+    Validate required CSV fields.
+
+    Args:
+        row:
+            Current CSV row.
+
+        required_fields:
+            Field names that must contain values.
+
+        labels:
+            Optional human-readable field labels.
+
+    Raises:
+        ValueError:
+            If a required field is empty.
+    """
+
+    row_number = row["row_number"]
+
+    labels = labels or {}
+
+    for field in required_fields:
+
+        value = row.get(field, "").strip()
+
+        if not value:
+
+            label = labels.get(
+                field,
+                field.replace("_", " ").title(),
+            )
+
+            raise ValueError(
+                f"Row {row_number}: "
+                f"{label} is required."
+            )
+
+
+def validate_active_status(row):
+    """
+    Validate the common is_active CSV field.
+    """
+
+    row_number = row["row_number"]
+
+    value = row.get(
+        "is_active",
+        "",
+    ).strip()
+
+    if value not in ("0", "1"):
+
+        raise ValueError(
+            f"Row {row_number}: "
+            "is_active must be 0 or 1."
+        )
+
+
+def generate_csv_template(columns):
+    """
+    Generate a CSV template containing
+    the supplied column headers.
+    """
+
+    output = io.StringIO()
+
+    writer = csv.writer(output)
+
+    writer.writerow(columns)
+
+    return output.getvalue()

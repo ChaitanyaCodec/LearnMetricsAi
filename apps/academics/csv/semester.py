@@ -7,7 +7,12 @@ from __future__ import annotations
 import csv
 import io
 
-from .service import read_csv_file
+from .service import (
+    generate_csv_template,
+    read_csv_file,
+    validate_active_status,
+    validate_required_fields,
+)
 
 from ..models import (
     Course,
@@ -75,36 +80,25 @@ def validate_semester_rows(rows):
         # Required fields
         # ----------------------------------------------
 
-        if not institution_name:
-            raise ValueError(
-                f"Row {row_number}: "
-                "Institution is required."
-            )
+        validate_required_fields(
+            row,
+            (
+                "institution",
+                "department",
+                "course",
+                "semester_number",
+                "name",
+            ),
+            {
+                "institution": "Institution",
+                "department": "Department",
+                "course": "Course",
+                "semester_number": "Semester number",
+                "name": "Semester name",
+            },
+        )
 
-        if not department_name:
-            raise ValueError(
-                f"Row {row_number}: "
-                "Department is required."
-            )
-
-        if not course_name:
-            raise ValueError(
-                f"Row {row_number}: "
-                "Course is required."
-            )
-
-        if not semester_number:
-            raise ValueError(
-                f"Row {row_number}: "
-                "Semester number is required."
-            )
-
-        if not name:
-            raise ValueError(
-                f"Row {row_number}: "
-                "Semester name is required."
-            )
-
+        validate_active_status(row)
         # ----------------------------------------------
         # Semester number validation
         # ----------------------------------------------
@@ -289,12 +283,6 @@ def generate_semester_csv_template():
     Generate the fixed Semester CSV template.
     """
 
-    output = io.StringIO()
-
-    writer = csv.writer(output)
-
-    writer.writerow(
+    return generate_csv_template(
         SEMESTER_CSV_COLUMNS
     )
-
-    return output.getvalue()

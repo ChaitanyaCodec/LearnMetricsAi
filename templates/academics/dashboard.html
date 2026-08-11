@@ -240,6 +240,269 @@ Manage the academic structure of your institution
     </div>
 
 </div>
+<!-- ==========================================================
+     CSV IMPORTS
+=========================================================== -->
+
+<div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+
+    <div>
+
+        <h4 class="mb-1">
+            Bulk Data Import
+        </h4>
+
+        <p class="text-muted mb-0">
+            Import academic master data using CSV files.
+        </p>
+
+    </div>
+
+</div>
+
+
+<div class="row g-4">
+
+    <!-- Institution -->
+
+    <div class="col-md-6 col-xl-4">
+
+        <div class="card-custom h-100">
+
+            <div class="card-body-custom">
+
+                <div class="d-flex align-items-center mb-3">
+
+                    <div class="me-3">
+
+                        <i class="fa-solid fa-building-columns fa-2x text-primary"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h5 class="mb-1">
+                            Institutions
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            Import institutions in bulk.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <a
+                    href="{% url 'academics:institution-import' %}"
+                    class="btn btn-outline-primary w-100"
+                >
+
+                    <i class="fa-solid fa-file-import me-2"></i>
+
+                    Import Institutions
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Department -->
+
+    <div class="col-md-6 col-xl-4">
+
+        <div class="card-custom h-100">
+
+            <div class="card-body-custom">
+
+                <div class="d-flex align-items-center mb-3">
+
+                    <div class="me-3">
+
+                        <i class="fa-solid fa-sitemap fa-2x text-primary"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h5 class="mb-1">
+                            Departments
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            Import departments in bulk.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <a
+                    href="{% url 'academics:department-import' %}"
+                    class="btn btn-outline-primary w-100"
+                >
+
+                    <i class="fa-solid fa-file-import me-2"></i>
+
+                    Import Departments
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Course -->
+
+    <div class="col-md-6 col-xl-4">
+
+        <div class="card-custom h-100">
+
+            <div class="card-body-custom">
+
+                <div class="d-flex align-items-center mb-3">
+
+                    <div class="me-3">
+
+                        <i class="fa-solid fa-graduation-cap fa-2x text-primary"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h5 class="mb-1">
+                            Courses
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            Import courses in bulk.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <a
+                    href="{% url 'academics:course-import' %}"
+                    class="btn btn-outline-primary w-100"
+                >
+
+                    <i class="fa-solid fa-file-import me-2"></i>
+
+                    Import Courses
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Semester -->
+
+    <div class="col-md-6 col-xl-4">
+
+        <div class="card-custom h-100">
+
+            <div class="card-body-custom">
+
+                <div class="d-flex align-items-center mb-3">
+
+                    <div class="me-3">
+
+                        <i class="fa-solid fa-layer-group fa-2x text-primary"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h5 class="mb-1">
+                            Semesters
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            Import semesters in bulk.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <a
+                    href="{% url 'academics:semester-import' %}"
+                    class="btn btn-outline-primary w-100"
+                >
+
+                    <i class="fa-solid fa-file-import me-2"></i>
+
+                    Import Semesters
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Subject -->
+
+    <div class="col-md-6 col-xl-4">
+
+        <div class="card-custom h-100">
+
+            <div class="card-body-custom">
+
+                <div class="d-flex align-items-center mb-3">
+
+                    <div class="me-3">
+
+                        <i class="fa-solid fa-book fa-2x text-primary"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h5 class="mb-1">
+                            Subjects
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            Import subjects in bulk.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <a
+                    href="{% url 'academics:subject-import' %}"
+                    class="btn btn-outline-primary w-100"
+                >
+
+                    <i class="fa-solid fa-file-import me-2"></i>
+
+                    Import Subjects
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
 <!-- ==========================================================
      FUTURE FEATURES

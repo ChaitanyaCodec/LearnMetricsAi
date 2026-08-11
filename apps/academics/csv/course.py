@@ -4,7 +4,12 @@ Course CSV import functionality.
 
 from __future__ import annotations
 
-from .service import read_csv_file
+from .service import (
+    generate_csv_template,
+    read_csv_file,
+    validate_active_status,
+    validate_required_fields,
+)
 
 from ..models import (
     Course,
@@ -67,35 +72,23 @@ def validate_course_rows(rows):
         # ----------------------------------------------
         # Required fields
         # ----------------------------------------------
+        validate_required_fields(
+            row,
+            (
+                "institution",
+                "department",
+                "name",
+                "code",
+            ),
+            {
+                "institution": "Institution",
+                "department": "Department",
+                "name": "Course name",
+                "code": "Course code",
+            },
+        )
 
-        if not institution_name:
-
-            raise ValueError(
-                f"Row {row_number}: "
-                "Institution is required."
-            )
-
-        if not department_name:
-
-            raise ValueError(
-                f"Row {row_number}: "
-                "Department is required."
-            )
-
-        if not name:
-
-            raise ValueError(
-                f"Row {row_number}: "
-                "Course name is required."
-            )
-
-        if not code:
-
-            raise ValueError(
-                f"Row {row_number}: "
-                "Course code is required."
-            )
-
+        validate_active_status(row)
         # ----------------------------------------------
         # Duration validation
         # ----------------------------------------------
@@ -250,16 +243,6 @@ def generate_course_csv_template():
     """
     Generate the fixed Course CSV template.
     """
-
-    import csv
-    import io
-
-    output = io.StringIO()
-
-    writer = csv.writer(output)
-
-    writer.writerow(
+    return generate_csv_template(
         COURSE_CSV_COLUMNS
     )
-
-    return output.getvalue()
