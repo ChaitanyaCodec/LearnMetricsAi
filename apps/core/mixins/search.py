@@ -8,7 +8,7 @@ class SearchMixin:
     Adds search support to list views.
     """
 
-    search_parameter = "q"
+    search_parameter = "search"
 
     def get_search(self):
         """

@@ -1,0 +1,323 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}
+    {% if object %}
+        Edit Enrollment
+    {% else %}
+        Enroll Student
+    {% endif %}
+{% endblock %}
+
+{% block page_title %}
+    {% if object %}
+        Edit Enrollment
+    {% else %}
+        Enroll Student
+    {% endif %}
+{% endblock %}
+
+{% block page_subtitle %}
+    Manage student academic enrollment
+{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-body">
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+
+            {% endif %}
+
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Student
+                    </label>
+
+                    {{ form.student }}
+
+                    {% for error in form.student.errors %}
+                        <div class="text-danger small">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Course
+                    </label>
+
+                    {{ form.course }}
+
+                    {% for error in form.course.errors %}
+                        <div class="text-danger small">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Semester
+                    </label>
+
+                    {{ form.semester }}
+
+                    {% for error in form.semester.errors %}
+                        <div class="text-danger small">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Academic Year
+                    </label>
+
+                    {{ form.academic_year }}
+
+                    {% for error in form.academic_year.errors %}
+                        <div class="text-danger small">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Roll Number
+                    </label>
+
+                    {{ form.roll_number }}
+
+                    {% for error in form.roll_number.errors %}
+                        <div class="text-danger small">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Enrollment Date
+                    </label>
+
+                    {{ form.enrollment_date }}
+
+                    {% for error in form.enrollment_date.errors %}
+                        <div class="text-danger small">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Status
+                    </label>
+
+                    {{ form.status }}
+
+                    {% for error in form.status.errors %}
+                        <div class="text-danger small">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <div class="alert alert-info mt-4">
+
+                <i class="bi bi-info-circle"></i>
+
+                The selected semester must belong to
+                the selected course.
+
+            </div>
+
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+
+                <a
+                    href="{% url 'students:enrollment-list' %}"
+                    class="btn btn-outline-secondary"
+                >
+                    Cancel
+                </a>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    {% if object %}
+                        Update Enrollment
+                    {% else %}
+                        Enroll Student
+                    {% endif %}
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const courseSelect = document.getElementById(
+        "id_course"
+    );
+
+    const semesterSelect = document.getElementById(
+        "id_semester"
+    );
+
+    if (!courseSelect || !semesterSelect) {
+        return;
+    }
+
+
+    function resetSelect(select, placeholder) {
+
+        select.innerHTML = "";
+
+        const option = document.createElement(
+            "option"
+        );
+
+        option.value = "";
+        option.textContent = placeholder;
+
+        select.appendChild(option);
+    }
+
+
+    function addOptions(select, results) {
+
+        results.forEach(function (item) {
+
+            const option =
+                document.createElement("option");
+
+            option.value = item.id;
+
+            option.textContent = item.name;
+
+            select.appendChild(option);
+
+        });
+    }
+
+
+    courseSelect.addEventListener(
+        "change",
+        function () {
+
+            const courseId = this.value;
+
+            resetSelect(
+                semesterSelect,
+                "Loading semesters..."
+            );
+
+            if (!courseId) {
+
+                resetSelect(
+                    semesterSelect,
+                    "Select Semester"
+                );
+
+                return;
+            }
+
+
+            fetch(
+                "{% url 'teachers:semester-options' %}"
+                + "?course_id="
+                + encodeURIComponent(courseId)
+            )
+            .then(function (response) {
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Failed to load semesters."
+                    );
+
+                }
+
+                return response.json();
+
+            })
+            .then(function (data) {
+
+                resetSelect(
+                    semesterSelect,
+                    "Select Semester"
+                );
+
+                addOptions(
+                    semesterSelect,
+                    data.results
+                );
+
+            })
+            .catch(function (error) {
+
+                console.error(
+                    "Semester loading error:",
+                    error
+                );
+
+                resetSelect(
+                    semesterSelect,
+                    "Unable to load semesters"
+                );
+
+            });
+
+        }
+    );
+
+});
+</script>
+
+{% endblock %}

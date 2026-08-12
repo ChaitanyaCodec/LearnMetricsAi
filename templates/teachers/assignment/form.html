@@ -1,0 +1,333 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}
+    {% if object %}
+        Edit Teaching Assignment
+    {% else %}
+        Assign Subject
+    {% endif %}
+{% endblock %}
+
+{% block page_title %}
+    {% if object %}
+        Edit Teaching Assignment
+    {% else %}
+        Assign Subject
+    {% endif %}
+{% endblock %}
+
+{% block page_subtitle %}
+    Assign a teacher to a course, semester and subject
+{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-body">
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+
+            {% endif %}
+
+
+            <div class="row g-3">
+
+                <!-- Teacher -->
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Teacher
+                    </label>
+
+                    {{ form.teacher }}
+
+                    {% for error in form.teacher.errors %}
+                        <div class="text-danger small">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- Course -->
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Course
+                    </label>
+
+                    {{ form.course }}
+
+                    {% for error in form.course.errors %}
+                        <div class="text-danger small">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- Semester -->
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Semester
+                    </label>
+
+                    {{ form.semester }}
+
+                    {% for error in form.semester.errors %}
+                        <div class="text-danger small">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- Subject -->
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Subject
+                    </label>
+
+                    {{ form.subject }}
+
+                    {% for error in form.subject.errors %}
+                        <div class="text-danger small">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <div class="alert alert-info mt-4">
+
+                <i class="bi bi-info-circle"></i>
+
+                The semester must belong to the selected course,
+                and the subject must belong to the selected semester.
+
+            </div>
+
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+
+                <a
+                    href="{% url 'teachers:assignment-list' %}"
+                    class="btn btn-outline-secondary"
+                >
+                    Cancel
+                </a>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    {% if object %}
+                        Update Assignment
+                    {% else %}
+                        Assign Subject
+                    {% endif %}
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const courseSelect = document.getElementById("id_course");
+    const semesterSelect = document.getElementById("id_semester");
+    const subjectSelect = document.getElementById("id_subject");
+
+    if (!courseSelect || !semesterSelect || !subjectSelect) {
+        console.error("Teaching assignment fields not found.");
+        return;
+    }
+
+    function resetSelect(select, text) {
+        select.innerHTML = "";
+
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = text;
+
+        select.appendChild(option);
+    }
+
+    function populateSelect(select, results, labelFunction) {
+        results.forEach(function (item) {
+
+            const option = document.createElement("option");
+
+            option.value = item.id;
+            option.textContent = labelFunction(item);
+
+            select.appendChild(option);
+        });
+    }
+
+
+    // Course → Semester
+    courseSelect.addEventListener("change", function () {
+
+        const courseId = this.value;
+
+        resetSelect(
+            semesterSelect,
+            "Loading semesters..."
+        );
+
+        resetSelect(
+            subjectSelect,
+            "Select Subject"
+        );
+
+        if (!courseId) {
+            resetSelect(
+                semesterSelect,
+                "Select Semester"
+            );
+            return;
+        }
+
+        const url =
+            "{% url 'teachers:semester-options' %}"
+            + "?course_id="
+            + encodeURIComponent(courseId);
+
+        fetch(url)
+            .then(function (response) {
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Failed to load semesters."
+                    );
+                }
+
+                return response.json();
+            })
+            .then(function (data) {
+
+                resetSelect(
+                    semesterSelect,
+                    "Select Semester"
+                );
+
+                populateSelect(
+                    semesterSelect,
+                    data.results,
+                    function (item) {
+                        return item.name;
+                    }
+                );
+            })
+            .catch(function (error) {
+
+                console.error(
+                    "Semester loading error:",
+                    error
+                );
+
+                resetSelect(
+                    semesterSelect,
+                    "Unable to load semesters"
+                );
+            });
+    });
+
+
+    // Semester → Subject
+    semesterSelect.addEventListener("change", function () {
+
+        const semesterId = this.value;
+
+        resetSelect(
+            subjectSelect,
+            "Loading subjects..."
+        );
+
+        if (!semesterId) {
+            resetSelect(
+                subjectSelect,
+                "Select Subject"
+            );
+            return;
+        }
+
+        const url =
+            "{% url 'teachers:subject-options' %}"
+            + "?semester_id="
+            + encodeURIComponent(semesterId);
+
+        fetch(url)
+            .then(function (response) {
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Failed to load subjects."
+                    );
+                }
+
+                return response.json();
+            })
+            .then(function (data) {
+
+                resetSelect(
+                    subjectSelect,
+                    "Select Subject"
+                );
+
+                populateSelect(
+                    subjectSelect,
+                    data.results,
+                    function (item) {
+                        return item.code
+                            + " - "
+                            + item.name;
+                    }
+                );
+            })
+            .catch(function (error) {
+
+                console.error(
+                    "Subject loading error:",
+                    error
+                );
+
+                resetSelect(
+                    subjectSelect,
+                    "Unable to load subjects"
+                );
+            });
+    });
+
+});
+</script>
+
+{% endblock %}
+
