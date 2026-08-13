@@ -4,9 +4,17 @@ Views for the Students application.
 from apps.accounts.mixins import AdminRequiredMixin
 
 from django.contrib import messages
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
+import csv
+from django.http import HttpResponse
 from django.urls import reverse_lazy
+from django.views import View
 from django.views.generic import TemplateView
+
+from .csv.student import (
+    StudentCSVImportError,
+    import_students,
+)
 
 from apps.core.views.crud import (
     BaseListView,
@@ -38,6 +46,7 @@ from .services import (
 )
 
 
+
 # ==========================================================
 # Student Dashboard
 # ==========================================================
@@ -54,7 +63,160 @@ class StudentManagementDashboardView(
         "students/dashboard.html"
     )
 
+class StudentBulkImportView(
+    AdminRequiredMixin,
+    View,
+):
+    """
+    Administrator bulk Student CSV import.
+    """
 
+    template_name = (
+        "students/student/import.html"
+    )
+
+    def get(self, request, *args, **kwargs):
+
+        import_results = request.session.pop(
+            "student_import_results",
+            None,
+        )
+
+        import_errors = request.session.pop(
+            "student_import_errors",
+            None,
+        )
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "import_results": import_results,
+                "import_errors": import_errors,
+            },
+        )
+
+    def post(self, request, *args, **kwargs):
+
+        uploaded_file = request.FILES.get(
+            "csv_file"
+        )
+
+        if uploaded_file is None:
+
+            messages.error(
+                request,
+                "Please select a CSV file to upload.",
+            )
+
+            return redirect(
+                "students:student-import"
+            )
+
+        try:
+
+            results = import_students(
+                uploaded_file
+            )
+
+        except StudentCSVImportError as exc:
+
+            if exc.args and isinstance(
+                exc.args[0],
+                list,
+            ):
+                errors = exc.args[0]
+
+            else:
+                errors = [
+                    str(exc)
+                ]
+
+            request.session[
+                "student_import_errors"
+            ] = errors
+
+            return redirect(
+                "students:student-import"
+            )
+
+        credentials = []
+
+        for result in results:
+
+            student = result["student"]
+
+            credentials.append(
+                {
+                    "student_id": student.student_id,
+                    "name": student.user.full_name,
+                    "email": student.user.email,
+                    "temporary_password": (
+                        result["temporary_password"]
+                    ),
+                }
+            )
+
+        request.session[
+            "student_import_results"
+        ] = credentials
+
+        messages.success(
+            request,
+            (
+                f"{len(credentials)} student(s) "
+                "imported successfully."
+            ),
+        )
+
+        return redirect(
+            "students:student-import"
+        )
+    
+class StudentCSVTemplateView(
+        AdminRequiredMixin,
+        View,
+    ):
+    
+
+    def get(self, request, *args, **kwargs):
+
+        response = HttpResponse(
+            content_type="text/csv"
+        )
+
+        response[
+            "Content-Disposition"
+        ] = (
+            'attachment; '
+            'filename="student_import_template.csv"'
+        )
+
+        writer = csv.writer(response)
+
+        writer.writerow(
+            [
+                "email",
+                "first_name",
+                "last_name",
+                "phone_number",
+                "student_id",
+                "admission_date",
+            ]
+        )
+
+        writer.writerow(
+            [
+                "student@example.com",
+                "John",
+                "Doe",
+                "9876543210",
+                "STU001",
+                "2026-06-01",
+            ]
+        )
+
+        return response
 # ==========================================================
 # Student Views
 # ==========================================================

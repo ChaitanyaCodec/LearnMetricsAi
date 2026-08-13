@@ -1,0 +1,339 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}
+    Import Students
+{% endblock %}
+
+{% block page_title %}
+    Import Students
+{% endblock %}
+
+{% block page_subtitle %}
+    Bulk import student accounts and profiles using CSV
+{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-body">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h5 class="mb-1">
+            Bulk Student Import
+        </h5>
+
+        <p class="text-muted mb-0">
+            Upload a CSV file to create multiple student
+            accounts and student profiles at once.
+        </p>
+    </div>
+
+    <div class="d-flex gap-2">
+
+        <a
+            href="{% url 'students:student-import-template' %}"
+            class="btn btn-outline-primary"
+        >
+            <i class="bi bi-download me-1"></i>
+            CSV Template
+        </a>
+
+        <a
+            href="{% url 'students:student-list' %}"
+            class="btn btn-outline-secondary"
+        >
+            <i class="bi bi-arrow-left me-1"></i>
+            Students
+        </a>
+
+    </div>
+
+</div>
+
+
+        {% if import_errors %}
+
+<div class="alert alert-danger">
+
+    <div class="d-flex align-items-start">
+
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+
+        <div class="flex-grow-1">
+
+            <h6 class="alert-heading mb-2">
+                Student import failed
+            </h6>
+
+            <p class="mb-2">
+                No students were imported.
+                Please correct the following issues and
+                upload the CSV again.
+            </p>
+
+            <ul class="mb-0">
+
+                {% for error in import_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+        {% if import_results %}
+
+<div class="alert alert-success">
+
+    <div class="d-flex align-items-start">
+
+        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+
+        <div>
+
+            <h6 class="alert-heading mb-1">
+                Import completed successfully
+            </h6>
+
+            <p class="mb-0">
+                {{ import_results|length }}
+                student(s) were created successfully.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="card border mb-4">
+
+    <div class="card-header bg-transparent">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <strong>
+                Temporary Login Credentials
+            </strong>
+
+            <span class="badge text-bg-warning">
+                Keep Secure
+            </span>
+
+        </div>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="alert alert-warning">
+
+            <i class="bi bi-shield-exclamation me-1"></i>
+
+            These temporary passwords are displayed once.
+            Make sure the credentials are securely provided
+            to the respective students.
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle mb-0">
+
+                <thead>
+
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Temporary Password</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for result in import_results %}
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                {{ result.student_id }}
+                            </strong>
+                        </td>
+
+                        <td>
+                            {{ result.name }}
+                        </td>
+
+                        <td>
+                            {{ result.email }}
+                        </td>
+
+                        <td>
+                            <code>
+                                {{ result.temporary_password }}
+                            </code>
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+
+        <div class="row g-4">
+
+            <div class="col-lg-7">
+
+                <div class="card border">
+
+                    <div class="card-body">
+
+                        <h6 class="mb-3">
+                            Upload CSV
+                        </h6>
+
+
+                        <form
+                            method="post"
+                            enctype="multipart/form-data"
+                        >
+
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+
+                                <label
+                                    for="csv_file"
+                                    class="form-label"
+                                >
+                                    Student CSV File
+                                </label>
+
+                                <input
+                                    type="file"
+                                    name="csv_file"
+                                    id="csv_file"
+                                    class="form-control"
+                                    accept=".csv"
+                                    required
+                                >
+
+                                <div class="form-text">
+                                    Only UTF-8 CSV files are supported.
+                                </div>
+
+                            </div>
+
+
+                            <div class="d-flex justify-content-end gap-2">
+
+                                <a
+                                    href="{% url 'students:student-list' %}"
+                                    class="btn btn-outline-secondary"
+                                >
+                                    Cancel
+                                </a>
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary"
+                                >
+                                    <i class="bi bi-upload"></i>
+                                    Import Students
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-lg-5">
+
+                <div class="card border">
+
+                    <div class="card-body">
+
+                        <h6 class="mb-3">
+                            CSV Format
+                        </h6>
+
+                        <p class="text-muted small">
+                            Your CSV must contain these columns
+                            in exactly this order:
+                        </p>
+
+                        <div class="bg-light rounded p-3 mb-3">
+
+                            <code>
+                                email,<br>
+                                first_name,<br>
+                                last_name,<br>
+                                phone_number,<br>
+                                student_id,<br>
+                                admission_date
+                            </code>
+
+                        </div>
+
+                        <h6 class="small">
+                            Example
+                        </h6>
+
+                        <div class="bg-light rounded p-3">
+
+                            <code class="small">
+                                rahul@example.com,Rahul,Patil,9876543210,STU001,2026-06-01
+                            </code>
+
+                        </div>
+
+                        <hr>
+
+                        <p class="small text-muted mb-0">
+                            Admission date is optional.
+                            Date format must be
+                            <strong>YYYY-MM-DD</strong>.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -35,6 +35,17 @@ urlpatterns = [
         name="student-update",
     ),
 
+    path(
+        "students/import/",
+        views.StudentBulkImportView.as_view(),
+        name="student-import",
+    ),
+    path(
+        "students/import/template/",
+        views.StudentCSVTemplateView.as_view(),
+        name="student-import-template",
+    ),
+
     # ======================================================
     # Enrollment Management
     # ======================================================
