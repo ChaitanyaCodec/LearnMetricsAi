@@ -45,6 +45,11 @@ urlpatterns = [
         views.StudentCSVTemplateView.as_view(),
         name="student-import-template",
     ),
+    path(
+        "students/<int:pk>/",
+        views.StudentDetailView.as_view(),
+        name="student-detail",
+    ),
 
     # ======================================================
     # Enrollment Management

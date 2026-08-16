@@ -1,0 +1,294 @@
+{% extends "base/dashboard_base.html" %}
+
+
+{% block title %}
+    Teacher Details
+{% endblock %}
+
+
+{% block page_title %}
+    Teacher Details
+{% endblock %}
+
+
+{% block page_subtitle %}
+    View teacher profile and teaching assignments
+{% endblock %}
+
+
+{% block content %}
+
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h5 class="mb-1">
+            {{ teacher.user.full_name }}
+        </h5>
+
+        <p class="text-muted mb-0">
+            {{ teacher.employee_id }}
+        </p>
+    </div>
+
+
+    <div class="d-flex gap-2">
+
+        <a
+            href="{% url 'teachers:teacher-update' teacher.pk %}"
+            class="btn btn-outline-primary"
+        >
+            <i class="bi bi-pencil me-1"></i>
+            Edit Teacher
+        </a>
+
+        <a
+            href="{% url 'teachers:assignment-create' %}?teacher={{ teacher.pk }}"
+            class="btn btn-primary"
+        >
+            <i class="bi bi-person-plus me-1"></i>
+            Assign Subject
+        </a>
+
+        <a
+            href="{% url 'teachers:teacher-list' %}"
+            class="btn btn-outline-secondary"
+        >
+            <i class="bi bi-arrow-left me-1"></i>
+            Back
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- Teacher Profile -->
+
+<div class="card shadow-sm border-0 mb-4">
+
+    <div class="card-body">
+
+        <h5 class="mb-4">
+            Teacher Profile
+        </h5>
+
+
+        <div class="row g-4">
+
+            <div class="col-md-6">
+
+                <div class="text-muted small">
+                    Employee ID
+                </div>
+
+                <div class="fw-semibold">
+                    {{ teacher.employee_id }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="text-muted small">
+                    Name
+                </div>
+
+                <div class="fw-semibold">
+                    {{ teacher.user.full_name }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="text-muted small">
+                    Email
+                </div>
+
+                <div class="fw-semibold">
+                    {{ teacher.user.email }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="text-muted small">
+                    Phone
+                </div>
+
+                <div class="fw-semibold">
+                    {{ teacher.user.phone_number|default:"—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="text-muted small">
+                    Joining Date
+                </div>
+
+                <div class="fw-semibold">
+                    {{ teacher.joining_date|default:"—" }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Teaching Assignments -->
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+            <div>
+
+                <h5 class="mb-1">
+                    Teaching Assignments
+                </h5>
+
+                <p class="text-muted mb-0">
+                    Subjects currently assigned to this teacher
+                </p>
+
+            </div>
+
+
+            <span class="badge bg-primary">
+                {{ assignments|length }} Assignment{{ assignments|length|pluralize }}
+            </span>
+
+        </div>
+
+
+        {% if assignments %}
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+
+                    <tr>
+                        <th>Institution</th>
+                        <th>Department</th>
+                        <th>Course</th>
+                        <th>Semester</th>
+                        <th>Subject</th>
+                        <th class="text-end">
+                            Actions
+                        </th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for assignment in assignments %}
+
+                    <tr>
+
+                        <td>
+                            {{ assignment.course.department.institution.name }}
+                        </td>
+
+                        <td>
+                            {{ assignment.course.department.name }}
+                        </td>
+
+                        <td>
+                            <strong>
+                                {{ assignment.course.name }}
+                            </strong>
+
+                            <div class="small text-muted">
+                                {{ assignment.course.code }}
+                            </div>
+                        </td>
+
+                        <td>
+                            {{ assignment.semester.name }}
+                        </td>
+
+                        <td>
+
+                            <strong>
+                                {{ assignment.subject.code }}
+                            </strong>
+
+                            <div class="small text-muted">
+                                {{ assignment.subject.name }}
+                            </div>
+
+                        </td>
+
+                        <td class="text-end">
+
+                            <a
+                                href="{% url 'teachers:assignment-update' assignment.pk %}"
+                                class="btn btn-sm btn-outline-primary"
+                            >
+                                <i class="bi bi-pencil"></i>
+                                Edit
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="text-center py-5">
+
+            <i class="bi bi-journal-x fs-1 text-muted"></i>
+
+            <h5 class="mt-3">
+                No teaching assignments
+            </h5>
+
+            <p class="text-muted">
+                This teacher has not been assigned
+                any subjects yet.
+            </p>
+
+            <a
+                href="{% url 'teachers:assignment-create' %}?teacher={{ teacher.pk }}"
+                class="btn btn-primary"
+            >
+                <i class="bi bi-person-plus me-1"></i>
+                Assign Subject
+            </a>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+{% endblock %}

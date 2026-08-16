@@ -32,13 +32,25 @@
 
             </div>
 
-            <a
-                href="{% url 'teachers:assignment-create' %}"
-                class="btn btn-primary"
-            >
-                <i class="bi bi-plus-lg"></i>
-                Assign Subject
-            </a>
+<div class="d-flex gap-2">
+
+    <a
+        href="{% url 'teachers:assignment-import' %}"
+        class="btn btn-outline-primary"
+    >
+        <i class="bi bi-upload me-1"></i>
+        Bulk Assign Teachers
+    </a>
+
+    <a
+        href="{% url 'teachers:assignment-create' %}"
+        class="btn btn-primary"
+    >
+        <i class="bi bi-plus-lg me-1"></i>
+        Assign Subject
+    </a>
+
+</div>
 
         </div>
 
@@ -151,6 +163,8 @@
                                 <i class="bi bi-pencil"></i>
                                 Edit
                             </a>
+
+                            
 
                         </td>
 

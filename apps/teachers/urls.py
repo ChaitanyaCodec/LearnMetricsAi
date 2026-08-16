@@ -17,6 +17,11 @@ urlpatterns = [
         views.TeacherManagementDashboardView.as_view(),
         name="dashboard",
     ),
+    path(
+        "teacher/dashboard/",
+        views.TeacherDashboardView.as_view(),
+        name="teacher-dashboard",
+    ),
 
     path(
         "teachers/",
@@ -51,6 +56,11 @@ urlpatterns = [
         views.TeachingAssignmentCreateView.as_view(),
         name="assignment-create",
     ),
+    path(
+        "assignments/import/",
+        views.TeachingAssignmentImportView.as_view(),
+        name="assignment-import",
+    ),
 
     path(
         "assignments/<int:pk>/update/",
@@ -67,5 +77,26 @@ urlpatterns = [
         "api/subjects/",
         views.SubjectOptionsView.as_view(),
         name="subject-options",
+    ),
+    path(
+        "teachers/import/",
+        views.TeacherBulkImportView.as_view(),
+        name="teacher-import",
+    ),
+
+    path(
+        "teachers/import/template/",
+        views.TeacherCSVTemplateView.as_view(),
+        name="teacher-import-template",
+    ),
+    path(
+        "assignments/import/template/",
+        views.TeachingAssignmentImportTemplateView.as_view(),
+        name="assignment-import-template",
+    ),
+    path(
+        "teachers/<int:pk>/",
+        views.TeacherDetailView.as_view(),
+        name="teacher-detail",
     ),
 ]

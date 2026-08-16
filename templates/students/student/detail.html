@@ -1,0 +1,315 @@
+{% extends "base/dashboard_base.html" %}
+
+
+{% block title %}
+    Student Details
+{% endblock %}
+
+
+{% block page_title %}
+    Student Details
+{% endblock %}
+
+
+{% block page_subtitle %}
+    View student profile and academic enrollments
+{% endblock %}
+
+
+{% block content %}
+
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h5 class="mb-1">
+            {{ student.user.full_name }}
+        </h5>
+
+        <p class="text-muted mb-0">
+            {{ student.student_id }}
+        </p>
+
+    </div>
+
+
+    <div class="d-flex gap-2">
+
+        <a
+            href="{% url 'students:student-update' student.pk %}"
+            class="btn btn-outline-primary"
+        >
+            <i class="bi bi-pencil me-1"></i>
+            Edit Student
+        </a>
+
+        <a
+            href="{% url 'students:enrollment-create' %}"
+            class="btn btn-primary"
+        >
+            <i class="bi bi-journal-plus me-1"></i>
+            Add Enrollment
+        </a>
+
+        <a
+            href="{% url 'students:student-list' %}"
+            class="btn btn-outline-secondary"
+        >
+            <i class="bi bi-arrow-left me-1"></i>
+            Back
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- Student Profile -->
+
+<div class="card shadow-sm border-0 mb-4">
+
+    <div class="card-body">
+
+        <h5 class="mb-4">
+            Student Profile
+        </h5>
+
+
+        <div class="row g-4">
+
+            <div class="col-md-6">
+
+                <div class="text-muted small">
+                    Student ID
+                </div>
+
+                <div class="fw-semibold">
+                    {{ student.student_id }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="text-muted small">
+                    Name
+                </div>
+
+                <div class="fw-semibold">
+                    {{ student.user.full_name }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="text-muted small">
+                    Email
+                </div>
+
+                <div class="fw-semibold">
+                    {{ student.user.email }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="text-muted small">
+                    Phone
+                </div>
+
+                <div class="fw-semibold">
+                    {{ student.user.phone_number|default:"—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="text-muted small">
+                    Admission Date
+                </div>
+
+                <div class="fw-semibold">
+                    {{ student.admission_date|default:"—" }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Academic Enrollments -->
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+            <div>
+
+                <h5 class="mb-1">
+                    Academic Enrollments
+                </h5>
+
+                <p class="text-muted mb-0">
+                    Courses and semesters associated with this student
+                </p>
+
+            </div>
+
+
+            <span class="badge bg-primary">
+                {{ enrollments|length }}
+                Enrollment{{ enrollments|length|pluralize }}
+            </span>
+
+        </div>
+
+
+        {% if enrollments %}
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+
+                    <tr>
+                        <th>Institution</th>
+                        <th>Department</th>
+                        <th>Course</th>
+                        <th>Semester</th>
+                        <th>Academic Year</th>
+                        <th>Roll Number</th>
+                        <th>Status</th>
+                        <th class="text-end">
+                            Actions
+                        </th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for enrollment in enrollments %}
+
+                    <tr>
+
+                        <td>
+                            {{ enrollment.course.department.institution.name }}
+                        </td>
+
+                        <td>
+                            {{ enrollment.course.department.name }}
+                        </td>
+
+                        <td>
+
+                            <strong>
+                                {{ enrollment.course.name }}
+                            </strong>
+
+                            <div class="small text-muted">
+                                {{ enrollment.course.code }}
+                            </div>
+
+                        </td>
+
+                        <td>
+                            {{ enrollment.semester.name }}
+                        </td>
+
+                        <td>
+                            {{ enrollment.academic_year }}
+                        </td>
+
+                        <td>
+                            {{ enrollment.roll_number|default:"—" }}
+                        </td>
+
+                        <td>
+
+                            {% if enrollment.status == "ACTIVE" %}
+
+                                <span class="badge bg-success">
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary">
+                                    {{ enrollment.get_status_display }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td class="text-end">
+
+                            <a
+                                href="{% url 'students:enrollment-update' enrollment.pk %}"
+                                class="btn btn-sm btn-outline-primary"
+                            >
+                                <i class="bi bi-pencil"></i>
+                                Edit
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="text-center py-5">
+
+            <i class="bi bi-journal-x fs-1 text-muted"></i>
+
+            <h5 class="mt-3">
+                No academic enrollments
+            </h5>
+
+            <p class="text-muted">
+                This student has not been enrolled in
+                any course yet.
+            </p>
+
+            <a
+                href="{% url 'students:enrollment-create' %}"
+                class="btn btn-primary"
+            >
+                <i class="bi bi-journal-plus me-1"></i>
+                Add Enrollment
+            </a>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+{% endblock %}

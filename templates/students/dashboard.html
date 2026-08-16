@@ -1,100 +1,378 @@
 {% extends "base/dashboard_base.html" %}
 
+
 {% block title %}
     Student Management
 {% endblock %}
+
 
 {% block page_title %}
     Student Management
 {% endblock %}
 
+
 {% block page_subtitle %}
-    Manage students and academic enrollments
+    Overview of students and academic enrollments
 {% endblock %}
+
 
 {% block content %}
 
-<div class="row g-4">
 
-    <!-- Students -->
-    <div class="col-md-6 col-xl-4">
-        <div class="card h-100 shadow-sm border-0">
+<!-- Summary Cards -->
+
+<div class="row g-4 mb-4">
+
+
+    <div class="col-md-6 col-xl-3">
+
+        <div class="card shadow-sm border-0 h-100">
+
             <div class="card-body">
 
-                <div class="d-flex align-items-center mb-3">
-                    <div class="me-3">
-                        <i class="bi bi-people fs-2"></i>
-                    </div>
+                <div class="d-flex justify-content-between align-items-start">
 
                     <div>
-                        <h5 class="card-title mb-1">
-                            Students
-                        </h5>
 
-                        <p class="text-muted mb-0">
-                            Manage student profiles
+                        <p class="text-muted mb-1">
+                            Total Students
                         </p>
+
+                        <h3 class="mb-0">
+                            {{ total_students }}
+                        </h3>
+
                     </div>
+
+                    <i class="bi bi-people fs-2 text-primary"></i>
+
                 </div>
 
-                <a
-                    href="{% url 'students:student-list' %}"
-                    class="btn btn-primary"
-                >
-                    View Students
-                </a>
-
-                <a
-                    href="{% url 'students:student-create' %}"
-                    class="btn btn-outline-primary"
-                >
-                    Add Student
-                </a>
-
             </div>
+
         </div>
+
     </div>
 
 
-    <!-- Enrollments -->
-    <div class="col-md-6 col-xl-4">
-        <div class="card h-100 shadow-sm border-0">
+    <div class="col-md-6 col-xl-3">
+
+        <div class="card shadow-sm border-0 h-100">
+
             <div class="card-body">
 
-                <div class="d-flex align-items-center mb-3">
-                    <div class="me-3">
-                        <i class="bi bi-journal-text fs-2"></i>
-                    </div>
+                <div class="d-flex justify-content-between align-items-start">
 
                     <div>
-                        <h5 class="card-title mb-1">
-                            Enrollments
-                        </h5>
 
-                        <p class="text-muted mb-0">
-                            Manage academic enrollments
+                        <p class="text-muted mb-1">
+                            Active Enrollments
                         </p>
+
+                        <h3 class="mb-0">
+                            {{ active_enrollments }}
+                        </h3>
+
                     </div>
+
+                    <i class="bi bi-person-check fs-2 text-success"></i>
+
                 </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-md-6 col-xl-3">
+
+        <div class="card shadow-sm border-0 h-100">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-start">
+
+                    <div>
+
+                        <p class="text-muted mb-1">
+                            Total Enrollments
+                        </p>
+
+                        <h3 class="mb-0">
+                            {{ total_enrollments }}
+                        </h3>
+
+                    </div>
+
+                    <i class="bi bi-journal-text fs-2 text-info"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-md-6 col-xl-3">
+
+        <div class="card shadow-sm border-0 h-100">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-start">
+
+                    <div>
+
+                        <p class="text-muted mb-1">
+                            Courses with Students
+                        </p>
+
+                        <h3 class="mb-0">
+                            {{ courses_with_students }}
+                        </h3>
+
+                    </div>
+
+                    <i class="bi bi-book fs-2 text-warning"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Quick Actions -->
+
+<div class="card shadow-sm border-0 mb-4">
+
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+
+                <h5 class="mb-1">
+                    Student Management
+                </h5>
+
+                <p class="text-muted mb-0">
+                    Manage student profiles and academic enrollments.
+                </p>
+
+            </div>
+
+
+            <div class="d-flex gap-2">
+
+                <a
+                    href="{% url 'students:student-list' %}"
+                    class="btn btn-outline-primary"
+                >
+                    <i class="bi bi-people me-1"></i>
+                    Students
+                </a>
+
 
                 <a
                     href="{% url 'students:enrollment-list' %}"
                     class="btn btn-primary"
                 >
-                    View Enrollments
-                </a>
-
-                <a
-                    href="{% url 'students:enrollment-create' %}"
-                    class="btn btn-outline-primary"
-                >
-                    Enroll Student
+                    <i class="bi bi-journal-text me-1"></i>
+                    Enrollments
                 </a>
 
             </div>
+
         </div>
+
     </div>
 
 </div>
+
+
+<!-- Recent Enrollments -->
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+            <div>
+
+                <h5 class="mb-1">
+                    Recent Student Enrollments
+                </h5>
+
+                <p class="text-muted mb-0">
+                    Latest academic enrollments.
+                </p>
+
+            </div>
+
+
+            <a
+                href="{% url 'students:enrollment-list' %}"
+                class="btn btn-sm btn-outline-secondary"
+            >
+                View All
+            </a>
+
+        </div>
+
+
+        {% if recent_enrollments %}
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+
+                    <tr>
+                        <th>Student</th>
+                        <th>Institution</th>
+                        <th>Department</th>
+                        <th>Course</th>
+                        <th>Semester</th>
+                        <th>Academic Year</th>
+                        <th>Status</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for enrollment in recent_enrollments %}
+
+                    <tr>
+
+                        <td>
+
+                            <strong>
+                                {{ enrollment.student.student_id }}
+                            </strong>
+
+                            <div class="small text-muted">
+                                {{ enrollment.student.user.full_name }}
+                            </div>
+
+                        </td>
+
+
+                        <td>
+                            {{ enrollment.course.department.institution.name }}
+                        </td>
+
+
+                        <td>
+                            {{ enrollment.course.department.name }}
+                        </td>
+
+
+                        <td>
+
+                            <strong>
+                                {{ enrollment.course.name }}
+                            </strong>
+
+                            <div class="small text-muted">
+                                {{ enrollment.course.code }}
+                            </div>
+
+                        </td>
+
+
+                        <td>
+                            {{ enrollment.semester.name }}
+                        </td>
+
+
+                        <td>
+                            {{ enrollment.academic_year }}
+                        </td>
+
+
+                        <td>
+
+                            {% if enrollment.status == "ACTIVE" %}
+
+                                <span class="badge bg-success">
+                                    Active
+                                </span>
+
+                            {% elif enrollment.status == "COMPLETED" %}
+
+                                <span class="badge bg-primary">
+                                    Completed
+                                </span>
+
+                            {% elif enrollment.status == "TRANSFERRED" %}
+
+                                <span class="badge bg-warning text-dark">
+                                    Transferred
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary">
+                                    {{ enrollment.get_status_display }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        {% else %}
+
+        <div class="text-center py-5">
+
+            <i class="bi bi-mortarboard fs-1 text-muted"></i>
+
+            <h5 class="mt-3">
+                No student enrollments yet
+            </h5>
+
+            <p class="text-muted">
+                Start by enrolling students into academic courses.
+            </p>
+
+            <a
+                href="{% url 'students:enrollment-create' %}"
+                class="btn btn-primary"
+            >
+                <i class="bi bi-plus-lg me-1"></i>
+                Enroll Student
+            </a>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
 
 {% endblock %}

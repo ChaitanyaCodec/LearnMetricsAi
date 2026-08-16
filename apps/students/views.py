@@ -4,6 +4,7 @@ Views for the Students application.
 from apps.accounts.mixins import AdminRequiredMixin
 
 from django.contrib import messages
+from django.db.models import Count
 from django.shortcuts import redirect, render
 import csv
 from django.http import HttpResponse
@@ -35,6 +36,7 @@ from .models import (
 
 from .selectors import (
     get_students,
+    get_student,
     get_student_enrollments,
 )
 
@@ -53,7 +55,7 @@ from .services import (
 
 class StudentManagementDashboardView(
     AdminRequiredMixin,
-    TemplateView
+    TemplateView,
 ):
     """
     Administrator Student Management Dashboard.
@@ -62,6 +64,62 @@ class StudentManagementDashboardView(
     template_name = (
         "students/dashboard.html"
     )
+
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(
+            **kwargs
+        )
+
+        total_students = (
+            Student.objects.count()
+        )
+
+        total_enrollments = (
+            StudentEnrollment.objects.count()
+        )
+
+        active_enrollments = (
+            StudentEnrollment.objects.filter(
+                status=StudentEnrollment.Status.ACTIVE
+            ).count()
+        )
+
+        courses_with_students = (
+            StudentEnrollment.objects
+            .values("course_id")
+            .distinct()
+            .count()
+        )
+
+        recent_enrollments = (
+            StudentEnrollment.objects
+            .select_related(
+                "student",
+                "student__user",
+                "course",
+                "course__department",
+                "course__department__institution",
+                "semester",
+            )
+            .order_by("-created_at")[:10]
+        )
+
+        context.update(
+            {
+                "total_students": total_students,
+                "total_enrollments": total_enrollments,
+                "active_enrollments": active_enrollments,
+                "courses_with_students": (
+                    courses_with_students
+                ),
+                "recent_enrollments": (
+                    recent_enrollments
+                ),
+            }
+        )
+
+        return context
 
 class StudentBulkImportView(
     AdminRequiredMixin,
@@ -305,7 +363,45 @@ class StudentUpdateView(BaseUpdateView, AdminRequiredMixin):
         "Student updated successfully."
     )
 
+class StudentDetailView(
+    AdminRequiredMixin,
+    TemplateView,
+):
+    """
+    Display a Student profile and their
+    academic enrollments.
+    """
 
+    template_name = (
+        "students/student/detail.html"
+    )
+
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(
+            **kwargs
+        )
+
+        student = get_student(
+            self.kwargs["pk"]
+        )
+
+        if student is None:
+            from django.http import Http404
+
+            raise Http404(
+                "Student not found."
+            )
+
+        enrollments = get_student_enrollments(
+            student=student,
+            ordering="-academic_year",
+        )
+
+        context["student"] = student
+        context["enrollments"] = enrollments
+
+        return context
 # ==========================================================
 # Enrollment Views
 # ==========================================================

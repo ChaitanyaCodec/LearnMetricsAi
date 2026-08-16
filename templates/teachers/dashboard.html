@@ -1,126 +1,109 @@
-{% extends "base/dashboard_base.html" %}
-
-{% block title %}
-    Teacher Management
-{% endblock %}
-
-{% block page_title %}
-    Teacher Management
-{% endblock %}
-
-{% block page_subtitle %}
-    Manage teachers and teaching assignments
-{% endblock %}
-
-{% block content %}
-
-<div class="row g-4">
-
-    <!-- Teachers -->
-
-    <div class="col-md-6 col-xl-4">
-
-        <div class="card h-100 shadow-sm border-0">
-
+{% extends "base/dashboard_base.html" %} {% block title %} Teacher Management {% endblock %} {% block page_title %}
+Teacher Management {% endblock %} {% block page_subtitle %} Overview of teachers and teaching assignments {% endblock %}
+{% block content %} <!-- Summary Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
-
-                <div class="d-flex align-items-center mb-3">
-
-                    <div class="me-3">
-                        <i class="bi bi-person-badge fs-2"></i>
-                    </div>
-
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-
-                        <h5 class="card-title mb-1">
-                            Teachers
-                        </h5>
-
-                        <p class="text-muted mb-0">
-                            Manage teacher profiles
-                        </p>
-
-                    </div>
-
+                        <p class="text-muted mb-1"> Total Teachers </p>
+                        <h3 class="mb-0"> {{ total_teachers }} </h3>
+                    </div> <i class="bi bi-people fs-2 text-primary"></i>
                 </div>
-
-                <div class="d-flex gap-2">
-
-                    <a
-                        href="{% url 'teachers:teacher-list' %}"
-                        class="btn btn-primary"
-                    >
-                        View Teachers
-                    </a>
-
-                    <a
-                        href="{% url 'teachers:teacher-create' %}"
-                        class="btn btn-outline-primary"
-                    >
-                        Add Teacher
-                    </a>
-
-                </div>
-
             </div>
-
         </div>
-
     </div>
-
-
-    <!-- Assignments -->
-
-    <div class="col-md-6 col-xl-4">
-
-        <div class="card h-100 shadow-sm border-0">
-
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
-
-                <div class="d-flex align-items-center mb-3">
-
-                    <div class="me-3">
-                        <i class="bi bi-person-workspace fs-2"></i>
-                    </div>
-
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-
-                        <h5 class="card-title mb-1">
-                            Teaching Assignments
-                        </h5>
-
-                        <p class="text-muted mb-0">
-                            Assign teachers to subjects
-                        </p>
-
-                    </div>
-
+                        <p class="text-muted mb-1"> Active Teachers </p>
+                        <h3 class="mb-0"> {{ active_teachers }} </h3>
+                    </div> <i class="bi bi-person-check fs-2 text-success"></i>
                 </div>
-
-                <div class="d-flex gap-2">
-
-                    <a
-                        href="{% url 'teachers:assignment-list' %}"
-                        class="btn btn-primary"
-                    >
-                        View Assignments
-                    </a>
-
-                    <a
-                        href="{% url 'teachers:assignment-create' %}"
-                        class="btn btn-outline-primary"
-                    >
-                        Assign Subject
-                    </a>
-
-                </div>
-
             </div>
-
         </div>
-
     </div>
-
-</div>
-
-{% endblock %}
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted mb-1"> Teaching Assignments </p>
+                        <h3 class="mb-0"> {{ total_assignments }} </h3>
+                    </div> <i class="bi bi-person-workspace fs-2 text-info"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted mb-1"> Courses Covered </p>
+                        <h3 class="mb-0"> {{ total_courses }} </h3>
+                    </div> <i class="bi bi-book fs-2 text-warning"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> <!-- Quick Actions -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-1"> Teacher Management </h5>
+                <p class="text-muted mb-0"> Manage teacher profiles and academic assignments. </p>
+            </div>
+            <div class="d-flex gap-2"> <a href="{% url 'teachers:teacher-list' %}" class="btn btn-outline-primary"> <i
+                        class="bi bi-people me-1"></i> Teachers </a> <a href="{% url 'teachers:assignment-list' %}"
+                    class="btn btn-primary"> <i class="bi bi-person-workspace me-1"></i> Assignments </a> </div>
+        </div>
+    </div>
+</div> <!-- Recent Assignments -->
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h5 class="mb-1"> Recent Teaching Assignments </h5>
+                <p class="text-muted mb-0"> Latest teacher subject assignments. </p>
+            </div> <a href="{% url 'teachers:assignment-list' %}" class="btn btn-sm btn-outline-secondary"> View All
+            </a>
+        </div> {% if recent_assignments %} <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Teacher</th>
+                        <th>Institution</th>
+                        <th>Department</th>
+                        <th>Course</th>
+                        <th>Semester</th>
+                        <th>Subject</th>
+                    </tr>
+                </thead>
+                <tbody> {% for assignment in recent_assignments %} <tr>
+                        <td> <strong> {{ assignment.teacher.employee_id }} </strong>
+                            <div class="small text-muted"> {{ assignment.teacher.user.full_name }} </div>
+                        </td>
+                        <td> {{ assignment.course.department.institution.name }} </td>
+                        <td> {{ assignment.course.department.name }} </td>
+                        <td> <strong> {{ assignment.course.name }} </strong>
+                            <div class="small text-muted"> {{ assignment.course.code }} </div>
+                        </td>
+                        <td> {{ assignment.semester.name }} </td>
+                        <td> <strong> {{ assignment.subject.code }} </strong>
+                            <div class="small text-muted"> {{ assignment.subject.name }} </div>
+                        </td>
+                    </tr> {% endfor %} </tbody>
+            </table>
+        </div> {% else %} <div class="text-center py-5"> <i class="bi bi-person-workspace fs-1 text-muted"></i>
+            <h5 class="mt-3"> No teaching assignments yet </h5>
+            <p class="text-muted"> Start by assigning teachers to academic subjects. </p> <a
+                href="{% url 'teachers:assignment-create' %}" class="btn btn-primary"> <i
+                    class="bi bi-plus-lg me-1"></i> Assign Subject </a>
+        </div> {% endif %}
+    </div>
+</div> {% endblock %}
