@@ -1,0 +1,101 @@
+from django.urls import path
+
+from . import views
+
+
+app_name = "documents"
+
+
+urlpatterns = [
+    path(
+        "",
+        views.DocumentListView.as_view(),
+        name="list",
+    ),
+    path(
+        "upload/",
+        views.DocumentUploadView.as_view(),
+        name="upload",
+    ),
+    path(
+        "api/documents/",
+        views.DocumentListAPIView.as_view(),
+        name="document-list",
+    ),
+    path(
+        "api/documents/<int:document_id>/",
+        views.DocumentDetailAPIView.as_view(),
+        name="document-detail",
+    ),
+    path(
+        "api/documents/<int:document_id>/versions/",
+        views.DocumentVersionUploadAPIView.as_view(),
+        name="document-version-upload",
+    ),
+    path(
+        "api/documents/<int:document_id>/submit-review/",
+        views.DocumentSubmitReviewAPIView.as_view(),
+        name="document-submit-review",
+    ),
+    path(
+        "api/documents/<int:document_id>/retire/",
+        views.DocumentRetireAPIView.as_view(),
+        name="document-retire",
+    ),
+    path(
+        "api/document-versions/<int:version_id>/approve/",
+        views.DocumentVersionApproveAPIView.as_view(),
+        name="document-version-approve",
+    ),
+    path(
+        "api/document-versions/<int:version_id>/reject/",
+        views.DocumentVersionRejectAPIView.as_view(),
+        name="document-version-reject",
+    ),
+    path(
+        "api/document-versions/<int:version_id>/retry/",
+        views.DocumentVersionRetryAPIView.as_view(),
+        name="document-version-retry",
+    ),
+    path(
+        "api/documents/<int:document_id>/"
+        "versions/<int:version_id>/download/",
+        views.DocumentVersionDownloadAPIView.as_view(),
+        name="document-version-download",
+    ),
+    path(
+        "review/",
+        views.DocumentReviewQueueView.as_view(),
+        name="review-queue",
+    ),
+    path(
+        "versions/<int:version_id>/approve/",
+        views.DocumentVersionApproveView.as_view(),
+        name="version-approve",
+    ),
+    path(
+        "versions/<int:version_id>/reject/",
+        views.DocumentVersionRejectView.as_view(),
+        name="version-reject",
+    ),
+    path(
+        "versions/<int:version_id>/retry/",
+        views.DocumentVersionRetryView.as_view(),
+        name="version-retry",
+    ),
+    path(
+        "<int:document_id>/submit-review/",
+        views.DocumentSubmitReviewView.as_view(),
+        name="submit-review",
+    ),
+    path(
+        "<int:document_id>/retire/",
+        views.DocumentRetireView.as_view(),
+        name="retire",
+    ),
+    path(
+        "<int:document_id>/",
+        views.DocumentDetailView.as_view(),
+        name="detail",
+    )
+]
