@@ -34,6 +34,8 @@ Thumbs.db
 .coverage
 .pytest_cache/
 
+/private_documents/
+
 # Migrations (optional - keep only __init__.py if desired)
 # */migrations/*
 # !*/migrations/__init__.py

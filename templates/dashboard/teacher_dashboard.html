@@ -9,6 +9,27 @@ Teacher Dashboard
 {% endblock %}
 
 {% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <a
+            href="{% url 'documents:list' %}"
+            class="btn btn-outline-primary w-100 py-3"
+        >
+            <i class="fa-solid fa-folder-open me-2"></i>
+            My Documents
+        </a>
+    </div>
+
+    <div class="col-md-6">
+        <a
+            href="{% url 'documents:upload' %}"
+            class="btn btn-primary w-100 py-3"
+        >
+            <i class="fa-solid fa-upload me-2"></i>
+            Upload Learning Material
+        </a>
+    </div>
+</div>
 
 <h2>Teacher Dashboard</h2>
 

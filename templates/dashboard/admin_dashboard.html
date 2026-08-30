@@ -15,6 +15,7 @@ AI Powered Educational Intelligence Platform
 
 {% block content %}
 
+
 <!-- ==========================================================
      HERO SECTION
 =========================================================== -->
@@ -195,7 +196,27 @@ AI Powered Educational Intelligence Platform
 <!-- ==========================================================
      CONTENT GRID
 =========================================================== -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <a
+            href="{% url 'documents:list' %}"
+            class="btn btn-primary w-100 py-3"
+        >
+            <i class="fa-solid fa-folder-open me-2"></i>
+            Manage Documents
+        </a>
+    </div>
 
+    <div class="col-md-6">
+        <a
+            href="{% url 'documents:review-queue' %}"
+            class="btn btn-outline-primary w-100 py-3"
+        >
+            <i class="fa-solid fa-clipboard-check me-2"></i>
+            Review Submitted Versions
+        </a>
+    </div>
+</div>
 <div class="row g-4">
 
     <div class="col-lg-8">

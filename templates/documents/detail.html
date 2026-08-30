@@ -1,0 +1,260 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}
+{{ document.title }} | LearnMetrics AI
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">{{ document.title }}</h2>
+        <p class="text-muted mb-0">
+            {{ document.subject.code }} — {{ document.subject.name }}
+        </p>
+    </div>
+
+    <a
+        href="{% url 'documents:list' %}"
+        class="btn btn-outline-secondary"
+    >
+        <i class="fa-solid fa-arrow-left me-2"></i>
+        Back to Documents
+    </a>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-lg-8">
+
+        <div class="card-custom mb-4">
+            <div class="card-body-custom">
+                <h5 class="mb-3">Document Details</h5>
+
+                <dl class="row mb-0">
+
+                    <dt class="col-sm-3">Status</dt>
+                    <dd class="col-sm-9">
+                        {{ document.get_status_display }}
+                    </dd>
+
+                    <dt class="col-sm-3">Course</dt>
+                    <dd class="col-sm-9">
+                        {{ document.subject.semester.course.name }}
+                    </dd>
+
+                    <dt class="col-sm-3">Semester</dt>
+                    <dd class="col-sm-9">
+                        {{ document.subject.semester.name }}
+                    </dd>
+
+                    <dt class="col-sm-3">Description</dt>
+                    <dd class="col-sm-9">
+                        {{ document.description|default:"—" }}
+                    </dd>
+
+                </dl>
+            </div>
+        </div>
+
+        <div class="card-custom">
+
+            <div class="card-header-custom">
+                <h5 class="card-title mb-0">Versions</h5>
+            </div>
+
+            <div class="card-body-custom p-0">
+
+                {% if versions %}
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover align-middle mb-0">
+
+                            <thead>
+                                <tr>
+                                    <th>Version</th>
+                                    <th>File</th>
+                                    <th>Processing</th>
+                                    <th>Review</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for version in versions %}
+
+                                    <tr>
+
+                                        <td>
+                                            v{{ version.version_number }}
+                                        </td>
+
+                                        <td>
+                                            {{ version.original_filename }}
+                                        </td>
+
+                                        <td>
+                                            {{ version.get_processing_status_display }}
+                                        </td>
+
+                                        <td>
+                                            {{ version.get_review_status_display }}
+                                        </td>
+
+                                        <td>
+
+                                            <a
+                                                class="btn btn-sm btn-outline-primary"
+                                                href="{% url 'documents:document-version-download' document.id version.id %}"
+                                            >
+                                                <i class="fa-solid fa-download"></i>
+                                                Download
+                                            </a>
+
+                                        </td>
+
+                                    </tr>
+
+                                    {% if version.processing_error and may_manage %}
+
+                                        <tr>
+
+                                            <td colspan="5">
+
+                                                <div class="alert alert-warning mb-0">
+                                                    {{ version.processing_error }}
+                                                </div>
+
+                                            </td>
+
+                                        </tr>
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="text-center py-5 text-muted">
+                        No accessible versions are available.
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {% if may_manage and document.status != "RETIRED" %}
+
+        <div class="col-lg-4">
+
+            {% if request.user.role == "ADMIN" %}
+
+                <div class="card-custom mt-4">
+
+                    <div class="card-body-custom">
+
+                        <h5 class="text-danger mb-3">
+                            Retire Document
+                        </h5>
+
+                        <form
+                            method="post"
+                            action="{% url 'documents:retire' document.id %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <input
+                                type="text"
+                                name="reason"
+                                class="form-control mb-3"
+                                placeholder="Reason for retirement"
+                                required
+                            >
+
+                            <button
+                                type="submit"
+                                class="btn btn-outline-danger w-100"
+                            >
+                                <i class="fa-solid fa-box-archive me-2"></i>
+                                Retire Document
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+
+            {% if latest_version %}
+
+                <div class="card-custom mt-4">
+
+                    <div class="card-body-custom">
+
+                        <h5 class="mb-3">
+                            Review Workflow
+                        </h5>
+
+                        {% if latest_version.review_status == "DRAFT" or latest_version.review_status == "REJECTED" %}
+
+                            <form
+                                method="post"
+                                action="{% url 'documents:submit-review' document.id %}"
+                            >
+
+                                {% csrf_token %}
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline-primary w-100"
+                                >
+                                    <i class="fa-solid fa-paper-plane me-2"></i>
+                                    Submit Latest Version for Review
+                                </button>
+
+                            </form>
+
+                        {% elif latest_version.review_status == "PENDING_REVIEW" %}
+
+                            <p class="text-muted mb-0">
+                                The latest version is awaiting administrator review.
+                            </p>
+
+                        {% elif latest_version.review_status == "APPROVED" %}
+
+                            <p class="text-success mb-0">
+                                The latest version is published.
+                            </p>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

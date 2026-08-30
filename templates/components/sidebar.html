@@ -88,7 +88,7 @@
 
             <li class="nav-item">
 
-                <a href="#"
+                <a href="{% url 'academics:course-list' %}"
                    class="nav-link">
 
                     <i class="fa-solid fa-folder-open"></i>
@@ -98,7 +98,17 @@
                 </a>
 
             </li>
-
+{% if request.user.role == "ADMIN" %}
+    <li class="nav-item">
+        <a
+            href="{% url 'documents:review-queue' %}"
+            class="nav-link"
+        >
+            <i class="fa-solid fa-clipboard-check"></i>
+            <span>Document Review</span>
+        </a>
+    </li>
+{% endif %}
             <li class="nav-item">
 
                 <a href="#"

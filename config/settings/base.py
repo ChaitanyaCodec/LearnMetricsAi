@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     "apps.academics",
     "apps.students",
     "apps.teachers",
+    "apps.documents",
+    "apps.rag",
 ]
 
 MIDDLEWARE = [
@@ -132,3 +134,34 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+#documents app settings
+
+DOCUMENTS_MAX_UPLOAD_SIZE = 20 * 1024 * 1024  # 20 MB
+
+DOCUMENTS_ALLOWED_EXTENSIONS = (
+    ".pdf",
+    ".docx",
+    ".pptx",
+    ".txt",
+)
+
+DOCUMENTS_CHUNK_SIZE = 1000
+DOCUMENTS_CHUNK_OVERLAP = 150
+
+PRIVATE_DOCUMENTS_ROOT = BASE_DIR / "private_documents"
+
+# -----------------------------------------------------------------------------
+# RAG / Embedding settings
+# -----------------------------------------------------------------------------
+
+RAG_EMBEDDING_MODEL = env.str(
+    "RAG_EMBEDDING_MODEL",
+    default="all-MiniLM-L6-v2",
+)
+
+RAG_EMBEDDING_DIMENSIONS = env.int(
+    "RAG_EMBEDDING_DIMENSIONS",
+    default=384,
+)

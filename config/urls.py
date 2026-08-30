@@ -17,6 +17,8 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -25,4 +27,11 @@ urlpatterns = [
     path("academics/", include("apps.academics.urls")),
     path("students/", include("apps.students.urls")),
     path("teachers/", include("apps.teachers.urls")),
+    path("documents/", include("apps.documents.urls")),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT,
+    )

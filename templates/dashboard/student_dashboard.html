@@ -9,7 +9,17 @@ Student Dashboard
 {% endblock %}
 
 {% block content %}
-
+<div class="row g-3 mb-4">
+    <div class="col-md-12">
+        <a
+            href="{% url 'documents:list' %}"
+            class="btn btn-primary w-100 py-3"
+        >
+            <i class="fa-solid fa-book-open me-2"></i>
+            Browse Approved Documents
+        </a>
+    </div>
+</div>
 <h2>Student Dashboard</h2>
 
 {% endblock %}

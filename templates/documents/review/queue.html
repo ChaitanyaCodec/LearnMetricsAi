@@ -1,0 +1,156 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}
+Document Review Queue | LearnMetrics AI
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Document Review Queue</h2>
+        <p class="text-muted mb-0">
+            Approve or reject versions submitted by teachers.
+        </p>
+    </div>
+
+    <a
+        href="{% url 'documents:list' %}"
+        class="btn btn-outline-secondary"
+    >
+        <i class="fa-solid fa-folder-open me-2"></i>
+        All Documents
+    </a>
+</div>
+
+<div class="card-custom">
+    <div class="card-body-custom p-0">
+
+        {% if versions %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Document</th>
+                            <th>Subject</th>
+                            <th>Version</th>
+                            <th>Uploaded By</th>
+                            <th>Processing</th>
+                            <th>Decision</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for version in versions %}
+                            <tr>
+                                <td>
+                                    <a
+                                        class="fw-semibold text-decoration-none"
+                                        href="{% url 'documents:detail' version.document.id %}"
+                                    >
+                                        {{ version.document.title }}
+                                    </a>
+                                </td>
+
+                                <td>
+                                    {{ version.document.subject }}
+                                </td>
+
+                                <td>v{{ version.version_number }}</td>
+
+                                <td>
+                                    {{ version.uploaded_by.full_name }}
+                                </td>
+
+                                <td>
+                                    {{ version.get_processing_status_display }}
+                                </td>
+
+                                <td>
+                                    {% if version.processing_status == "COMPLETED" %}
+                                        <div class="d-flex gap-2">
+                                            <form
+                                                method="post"
+                                                action="{% url 'documents:version-approve' version.id %}"
+                                            >
+                                                {% csrf_token %}
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-sm btn-success"
+                                                >
+                                                    Approve
+                                                </button>
+                                            </form>
+
+                                            <button
+                                                class="btn btn-sm btn-outline-danger"
+                                                type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#reject-{{ version.id }}"
+                                            >
+                                                Reject
+                                            </button>
+                                        </div>
+                                    {% else %}
+                                        <form
+                                            method="post"
+                                            action="{% url 'documents:version-retry' version.id %}"
+                                        >
+                                            {% csrf_token %}
+                                            <button
+                                                type="submit"
+                                                class="btn btn-sm btn-outline-primary"
+                                            >
+                                                Retry Processing
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                            <tr
+                                id="reject-{{ version.id }}"
+                                class="collapse"
+                            >
+                                <td colspan="6">
+                                    <form
+                                        method="post"
+                                        action="{% url 'documents:version-reject' version.id %}"
+                                        class="d-flex gap-2"
+                                    >
+                                        {% csrf_token %}
+                                        <input
+                                            type="text"
+                                            name="reason"
+                                            class="form-control"
+                                            placeholder="Reason for rejection"
+                                            required
+                                        >
+                                        <button
+                                            type="submit"
+                                            class="btn btn-danger"
+                                        >
+                                            Confirm Rejection
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fa-solid fa-circle-check fa-2x text-success mb-3"></i>
+                <h5>Review queue is clear</h5>
+                <p class="text-muted mb-0">
+                    There are no document versions awaiting review.
+                </p>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}
