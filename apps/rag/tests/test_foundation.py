@@ -12,12 +12,3 @@ class RagFoundationTests(SimpleTestCase):
         service = RagService()
 
         self.assertIsNotNone(service)
-
-    def test_question_answering_is_not_implemented_yet(self):
-        service = RagService()
-
-        with self.assertRaises(NotImplementedError):
-            service.answer_question(
-                user=None,
-                question="What is a database?",
-            )
