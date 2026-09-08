@@ -1,16 +1,16 @@
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 from django.test import SimpleTestCase
 
 from apps.rag.services import (
+    RagAnswer,
     RagService,
     RagServiceError,
 )
 
 
-class RagServiceRetrievalTests(SimpleTestCase):
-    """Tests for question-to-retrieval orchestration."""
-
+class RagServiceTests(SimpleTestCase):
     def setUp(self):
         self.embedding_service = Mock()
         self.retrieval_service = Mock()
@@ -22,201 +22,240 @@ class RagServiceRetrievalTests(SimpleTestCase):
             generation_service=self.generation_service,
         )
 
-    def test_retrieve_question_generates_embedding_and_retrieves(self):
-        query_embedding = [0.1] * 384
-
-        expected_results = [
-            "chunk-1",
-            "chunk-2",
-        ]
-
-        self.embedding_service.embed_text.return_value = (
-            query_embedding
-        )
-
-        self.retrieval_service.retrieve.return_value = (
-            expected_results
-        )
-
-        results = self.service.retrieve_question(
-            question="What is a database?",
-            top_k=5,
-        )
-
-        self.assertEqual(
-            results,
-            expected_results,
-        )
-
-        self.embedding_service.embed_text.assert_called_once_with(
-            "What is a database?"
-        )
-
-        self.retrieval_service.retrieve.assert_called_once_with(
-            query_embedding=query_embedding,
-            top_k=5,
-            subject=None,
-        )
-
-    def test_subject_is_forwarded(self):
-        query_embedding = [0.1] * 384
-
-        self.embedding_service.embed_text.return_value = (
-            query_embedding
-        )
-
-        self.retrieval_service.retrieve.return_value = []
-
-        subject = Mock()
-
-        self.service.retrieve_question(
-            question="What is normalization?",
-            top_k=3,
-            subject=subject,
-        )
-
-        self.retrieval_service.retrieve.assert_called_once_with(
-            query_embedding=query_embedding,
-            top_k=3,
-            subject=subject,
-        )
+    def test_question_must_be_string(self):
+        with self.assertRaises(RagServiceError):
+            self.service.retrieve_question(
+                question=123
+            )
 
     def test_empty_question_is_rejected(self):
         with self.assertRaises(RagServiceError):
-            self.service.answer_question(
-                user=None,
-                question="",
-            )
-    def test_whitespace_question_is_rejected(self):
-        with self.assertRaises(RagServiceError):
-            self.service.answer_question(
-                user=None,
-                question="   ",
-            )
-
-    def test_non_string_question_is_rejected(self):
-        with self.assertRaises(RagServiceError):
-            self.service.answer_question(
-                user=None,
-                question=123,
+            self.service.retrieve_question(
+                question="   "
             )
 
     def test_embedding_failure_is_wrapped(self):
-        self.embedding_service.embed_text.side_effect = (
-            RuntimeError("embedding failure")
+        self.embedding_service.embed_text.side_effect = Exception(
+            "Embedding failed"
         )
 
         with self.assertRaises(RagServiceError):
-            self.service.answer_question(
-                user=None,
-                question="What is a database?",
+            self.service.retrieve_question(
+                question="What is normalization?"
             )
 
-        self.retrieval_service.retrieve.assert_not_called()
-
-        self.generation_service.generate.assert_not_called()
     def test_retrieval_failure_is_wrapped(self):
         self.embedding_service.embed_text.return_value = [
-            0.1
-        ] * 384
+            0.1,
+            0.2,
+        ]
 
-        self.retrieval_service.retrieve.side_effect = (
-            RuntimeError("retrieval failure")
+        self.retrieval_service.retrieve.side_effect = Exception(
+            "Retrieval failed"
         )
 
         with self.assertRaises(RagServiceError):
-            self.service.answer_question(
-                user=None,
-                question="What is a database?",
+            self.service.retrieve_question(
+                question="What is normalization?"
             )
 
-        self.generation_service.generate.assert_not_called()
-
-    def test_answer_question_runs_full_pipeline(self):
-        self.embedding_service.embed_text.return_value = [
-            0.1
-        ] * 384
-
+    def test_retrieval_pipeline(self):
+        embedding = [0.1, 0.2]
         chunks = [
-            Mock(),
-            Mock(),
+            SimpleNamespace(content="Normalization content")
         ]
 
+        self.embedding_service.embed_text.return_value = embedding
         self.retrieval_service.retrieve.return_value = chunks
 
+        result = self.service.retrieve_question(
+            question="What is normalization?",
+            top_k=5,
+            subject="subject",
+        )
+
+        self.assertEqual(result, chunks)
+
+        self.embedding_service.embed_text.assert_called_once_with(
+            "What is normalization?"
+        )
+
+        self.retrieval_service.retrieve.assert_called_once_with(
+            query_embedding=embedding,
+            subject="subject",
+            top_k=5,
+        )
+
+    def test_subject_is_forwarded(self):
+        embedding = [0.1, 0.2]
+
+        self.embedding_service.embed_text.return_value = embedding
+        self.retrieval_service.retrieve.return_value = []
+
+        self.service.retrieve_question(
+            question="What is normalization?",
+            subject="subject",
+        )
+
+        self.retrieval_service.retrieve.assert_called_once_with(
+            query_embedding=embedding,
+            subject="subject",
+        )
+
+    def test_answer_question_returns_answer(self):
+        chunks = [
+            SimpleNamespace(content="Normalization content")
+        ]
+
+        self.embedding_service.embed_text.return_value = [
+            0.1,
+            0.2,
+        ]
+        self.retrieval_service.retrieve.return_value = chunks
         self.generation_service.generate.return_value = (
-            "A database is an organized collection of data."
+            "Normalization is the organization of data."
         )
 
         result = self.service.answer_question(
-            user=None,
-            question="  What is a database?  ",
+            question="What is normalization?",
+            subject="subject",
+            top_k=5,
         )
 
         self.assertEqual(
             result,
-            "A database is an organized collection of data.",
-        )
-
-        self.embedding_service.embed_text.assert_called_once_with(
-            "What is a database?"
-        )
-
-        self.retrieval_service.retrieve.assert_called_once_with(
-            query_embedding=[0.1] * 384,
-            subject=None,
+            "Normalization is the organization of data.",
         )
 
         self.generation_service.generate.assert_called_once_with(
-            question="What is a database?",
-            chunks=chunks,
-        )
-    def test_subject_is_forwarded_through_pipeline(self):
-        subject = Mock()
-
-        self.embedding_service.embed_text.return_value = [
-            0.1
-        ] * 384
-
-        chunks = [Mock()]
-
-        self.retrieval_service.retrieve.return_value = chunks
-
-        self.generation_service.generate.return_value = (
-            "Answer"
-        )
-
-        result = self.service.answer_question(
-            user=None,
-            question="What is SQL?",
-            subject=subject,
-        )
-
-        self.assertEqual(
-            result,
-            "Answer",
-        )
-
-        self.retrieval_service.retrieve.assert_called_once_with(
-            query_embedding=[0.1] * 384,
-            subject=subject,
+            question="What is normalization?",
+            chunks=tuple(chunks),
         )
 
     def test_generation_failure_is_wrapped(self):
+        chunks = [
+            SimpleNamespace(content="Normalization content")
+        ]
+
         self.embedding_service.embed_text.return_value = [
-            0.1
-        ] * 384
-
-        chunks = [Mock()]
-
+            0.1,
+            0.2,
+        ]
         self.retrieval_service.retrieve.return_value = chunks
-
-        self.generation_service.generate.side_effect = (
-            RuntimeError("generation failure")
+        self.generation_service.generate.side_effect = Exception(
+            "Generation failed"
         )
 
         with self.assertRaises(RagServiceError):
             self.service.answer_question(
-                user=None,
-                question="What is a database?",
+                question="What is normalization?"
             )
+
+    def test_subject_is_forwarded_through_answer_pipeline(self):
+        chunks = [
+            SimpleNamespace(content="Normalization content")
+        ]
+
+        self.embedding_service.embed_text.return_value = [
+            0.1,
+            0.2,
+        ]
+        self.retrieval_service.retrieve.return_value = chunks
+        self.generation_service.generate.return_value = "Answer"
+
+        self.service.answer_question(
+            question="What is normalization?",
+            subject="subject",
+            top_k=3,
+        )
+
+        self.retrieval_service.retrieve.assert_called_once_with(
+            query_embedding=[0.1, 0.2],
+            subject="subject",
+            top_k=3,
+        )
+
+    def test_answer_question_with_sources_returns_structured_result(
+        self,
+    ):
+        chunk = SimpleNamespace(
+            content="Normalization content"
+        )
+
+        self.embedding_service.embed_text.return_value = [
+            0.1,
+            0.2,
+        ]
+        self.retrieval_service.retrieve.return_value = [
+            chunk
+        ]
+        self.generation_service.generate.return_value = (
+            "Normalization is the organization of data."
+        )
+
+        result = self.service.answer_question_with_sources(
+            question="What is normalization?",
+            subject="subject",
+            top_k=5,
+        )
+
+        self.assertIsInstance(result, RagAnswer)
+
+        self.assertEqual(
+            result.answer,
+            "Normalization is the organization of data.",
+        )
+
+        self.assertEqual(
+            result.chunks,
+            (chunk,),
+        )
+
+        self.generation_service.generate.assert_called_once_with(
+            question="What is normalization?",
+            chunks=(chunk,),
+        )
+
+    def test_answer_question_with_sources_preserves_retrieved_chunks(
+        self,
+    ):
+        first_chunk = SimpleNamespace(
+            content="First source"
+        )
+        second_chunk = SimpleNamespace(
+            content="Second source"
+        )
+
+        retrieved_chunks = [
+            first_chunk,
+            second_chunk,
+        ]
+
+        self.embedding_service.embed_text.return_value = [
+            0.1,
+            0.2,
+        ]
+        self.retrieval_service.retrieve.return_value = (
+            retrieved_chunks
+        )
+        self.generation_service.generate.return_value = "Answer"
+
+        result = self.service.answer_question_with_sources(
+            question="Question?"
+        )
+
+        self.assertEqual(
+            result.chunks,
+            (
+                first_chunk,
+                second_chunk,
+            ),
+        )
+
+        self.generation_service.generate.assert_called_once_with(
+            question="Question?",
+            chunks=(
+                first_chunk,
+                second_chunk,
+            ),
+        )

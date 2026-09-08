@@ -1,12 +1,26 @@
+from dataclasses import dataclass
+
 from .embeddings import EmbeddingService
 from .generation import AnswerGenerationService
 from .retrieval import RetrievalService
 
 
 class RagServiceError(Exception):
+    """Base exception for RAG service failures."""
+
+
+@dataclass(frozen=True)
+class RagAnswer:
     """
-    Base exception for RAG service failures.
+    Structured result produced by the RAG pipeline.
+
+    The retrieved chunks are retained so callers can expose
+    deterministic source metadata without relying on the LLM
+    to identify or reproduce citations.
     """
+
+    answer: str
+    chunks: tuple
 
 
 class RagService:
@@ -21,6 +35,8 @@ class RagService:
         Vector Retrieval
             ↓
         Answer Generation
+            ↓
+        Answer + Retrieved Sources
     """
 
     def __init__(
@@ -56,10 +72,8 @@ class RagService:
         subject=None,
     ):
         """
-        Convert a question into an embedding and retrieve
-        the most relevant document chunks.
+        Generate a question embedding and retrieve relevant chunks.
         """
-
         self._validate_question(question)
 
         try:
@@ -71,17 +85,18 @@ class RagService:
                 "Failed to generate question embedding."
             ) from exc
 
-        # Build retrieval kwargs dynamically so omitted default values 
-        # do not pollute mock verification calls
         retrieval_kwargs = {
             "query_embedding": query_embedding,
             "subject": subject,
         }
+
         if top_k is not None:
             retrieval_kwargs["top_k"] = top_k
 
         try:
-            return self.retrieval_service.retrieve(**retrieval_kwargs)
+            return self.retrieval_service.retrieve(
+                **retrieval_kwargs
+            )
         except Exception as exc:
             raise RagServiceError(
                 "Failed to retrieve relevant document chunks."
@@ -96,27 +111,55 @@ class RagService:
         top_k=None,
     ):
         """
-        Execute the complete RAG question-answering pipeline.
+        Generate an answer and return only the answer text.
 
-        1. Validate the question.
-        2. Generate its embedding.
-        3. Retrieve relevant chunks.
-        4. Generate an answer from those chunks.
+        This method is retained for compatibility with existing
+        RAG service consumers.
         """
+        result = self.answer_question_with_sources(
+            user=user,
+            question=question,
+            subject=subject,
+            top_k=top_k,
+        )
 
+        return result.answer
+
+    def answer_question_with_sources(
+        self,
+        *,
+        user=None,
+        question,
+        subject=None,
+        top_k=None,
+    ):
+        """
+        Generate an answer while retaining the exact retrieved
+        chunks used as generation context.
+        """
         self._validate_question(question)
 
         retrieve_kwargs = {
             "question": question,
             "subject": subject,
         }
+
         if top_k is not None:
             retrieve_kwargs["top_k"] = top_k
 
-        chunks = self.retrieve_question(**retrieve_kwargs)
+        chunks = self.retrieve_question(
+            **retrieve_kwargs
+        )
+
+        if chunks is None:
+            raise RagServiceError(
+                "Retrieved chunks are required."
+            )
+
+        chunks = tuple(chunks)
 
         try:
-            return self.generation_service.generate(
+            answer = self.generation_service.generate(
                 question=question.strip(),
                 chunks=chunks,
             )
@@ -125,12 +168,13 @@ class RagService:
                 "Failed to generate an answer."
             ) from exc
 
+        return RagAnswer(
+            answer=answer,
+            chunks=chunks,
+        )
+
     @staticmethod
     def _validate_question(question):
-        """
-        Validate the user's question.
-        """
-
         if not isinstance(question, str):
             raise RagServiceError(
                 "Question must be a string."
