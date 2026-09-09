@@ -291,17 +291,14 @@ class ConversationMessageAPIView(LoginRequiredMixin, View):
                 status=403,
             )
 
-        try:
-            top_k = data.get("top_k")
+        top_k = data.get("top_k")
 
-            if top_k is not None:
-                top_k = int(top_k)
-
-        except (TypeError, ValueError):
-            return JsonResponse(
-                {"error": "top_k must be an integer."},
-                status=400,
-            )
+        if top_k is not None:
+            if not isinstance(top_k, int) or isinstance(top_k, bool):
+                return JsonResponse(
+                    {"error": "top_k must be an integer."},
+                    status=400,
+                )
 
         # Persist the student's question first.
         try:
