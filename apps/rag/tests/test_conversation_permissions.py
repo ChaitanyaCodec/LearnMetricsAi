@@ -1,3 +1,6 @@
+from apps.students.models import Student, StudentEnrollment
+from apps.teachers.models import Teacher, TeachingAssignment
+
 from django.test import TestCase
 
 from apps.accounts.models import User
@@ -79,6 +82,119 @@ class ConversationPermissionTests(TestCase):
         user = User.objects.create_user(
             email="regular@example.com",
             password="test-password",
+        )
+
+        self.assertFalse(
+            can_access_conversation_subject(
+                user,
+                self.subject,
+            )
+        )
+    def test_teacher_with_active_assignment_is_allowed(self):
+        user = User.objects.create_user(
+            email="teacher@example.com",
+            password="test-password",
+            role=User.Roles.TEACHER,
+        )
+
+        teacher = Teacher.objects.create(
+            user=user,
+            employee_id="T001",
+        )
+
+        TeachingAssignment.objects.create(
+            teacher=teacher,
+            course=self.subject.semester.course,
+            semester=self.subject.semester,
+            subject=self.subject,
+            is_active=True,
+        )
+
+        self.assertTrue(
+            can_access_conversation_subject(
+                user,
+                self.subject,
+            )
+        )
+
+    def test_teacher_with_inactive_assignment_is_denied(self):
+        user = User.objects.create_user(
+            email="inactive-teacher@example.com",
+            password="test-password",
+            role=User.Roles.TEACHER,
+        )
+
+        teacher = Teacher.objects.create(
+            user=user,
+            employee_id="T002",
+        )
+
+        TeachingAssignment.objects.create(
+            teacher=teacher,
+            course=self.subject.semester.course,
+            semester=self.subject.semester,
+            subject=self.subject,
+            is_active=False,
+        )
+
+        self.assertFalse(
+            can_access_conversation_subject(
+                user,
+                self.subject,
+            )
+        )
+
+    def test_student_with_active_enrollment_is_allowed(self):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="test-password",
+            role=User.Roles.STUDENT,
+        )
+
+        student = Student.objects.create(
+            user=user,
+            student_id="S001",
+        )
+
+        StudentEnrollment.objects.create(
+            student=student,
+            course=self.subject.semester.course,
+            semester=self.subject.semester,
+            academic_year="2026-27",
+            roll_number="R001",
+            enrollment_date="2026-06-01",
+            status=StudentEnrollment.Status.ACTIVE,
+            is_active=True,
+        )
+
+        self.assertTrue(
+            can_access_conversation_subject(
+                user,
+                self.subject,
+            )
+        )
+
+    def test_student_with_inactive_enrollment_is_denied(self):
+        user = User.objects.create_user(
+            email="inactive-student@example.com",
+            password="test-password",
+            role=User.Roles.STUDENT,
+        )
+
+        student = Student.objects.create(
+            user=user,
+            student_id="S002",
+        )
+
+        StudentEnrollment.objects.create(
+            student=student,
+            course=self.subject.semester.course,
+            semester=self.subject.semester,
+            academic_year="2026-27",
+            roll_number="R002",
+            enrollment_date="2026-06-01",
+            status=StudentEnrollment.Status.ACTIVE,
+            is_active=False,
         )
 
         self.assertFalse(
