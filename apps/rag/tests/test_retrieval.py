@@ -351,3 +351,97 @@ class RetrievalServiceTests(TestCase):
                 result.document_version.document.subject,
                 self.subject,
             )
+
+    def test_unapproved_document_version_is_excluded(self):
+        self.version.review_status = (
+            DocumentVersion.ReviewStatus.REJECTED
+        )
+        self.version.save(update_fields=["review_status"])
+
+        query_embedding = [1.0] + [0.0] * 383
+
+        results = self.service.retrieve(
+            query_embedding=query_embedding,
+        )
+
+        self.assertEqual(results, [])
+
+    def test_unapproved_document_version_is_excluded(self):
+        self.version.review_status = (
+            DocumentVersion.ReviewStatus.REJECTED
+        )
+        self.version.save(update_fields=["review_status"])
+
+        query_embedding = [1.0] + [0.0] * 383
+
+        results = self.service.retrieve(
+            query_embedding=query_embedding,
+        )
+
+        self.assertEqual(results, [])
+
+
+    def test_incomplete_processing_version_is_excluded(self):
+        self.version.processing_status = (
+            DocumentVersion.ProcessingStatus.PROCESSING
+        )
+        self.version.save(update_fields=["processing_status"])
+
+        query_embedding = [1.0] + [0.0] * 383
+
+        results = self.service.retrieve(
+            query_embedding=query_embedding,
+        )
+
+        self.assertEqual(results, [])
+
+
+    def test_old_document_version_is_excluded_when_newer_version_is_published(
+        self,
+    ):
+        old_version = self.version
+
+        old_chunk = DocumentChunk.objects.filter(
+            document_version=old_version,
+        ).first()
+
+        self.assertIsNotNone(old_chunk)
+
+        newer_version = DocumentVersion.objects.create(
+            document=self.document,
+            version_number=2,
+            source_file="documents/test-v2.pdf",
+            original_filename="test-v2.pdf",
+            content_type="application/pdf",
+            file_size=100,
+            file_checksum="b" * 64,
+            uploaded_by=self.user,
+            review_status=DocumentVersion.ReviewStatus.APPROVED,
+            processing_status=DocumentVersion.ProcessingStatus.COMPLETED,
+        )
+
+        new_chunk = DocumentChunk.objects.create(
+            document_version=newer_version,
+            chunk_index=0,
+            content="Content from the new published document version.",
+        )
+
+        self._create_embedding(
+            new_chunk,
+            1.0,
+        )
+        self.document.published_version = newer_version
+        self.document.save(
+            update_fields=["published_version"],
+        )
+
+        query_embedding = [1.0] + [0.0] * 383
+
+        results = self.service.retrieve(
+            query_embedding=query_embedding,
+        )
+
+        result_ids = [chunk.id for chunk in results]
+
+        self.assertIn(new_chunk.id, result_ids)
+        self.assertNotIn(old_chunk.id, result_ids)
