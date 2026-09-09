@@ -3,11 +3,13 @@ from .exceptions import (
     ConversationServiceError,
     ConversationValidationError,
 )
+from .permissions import can_access_conversation_subject
 from .service import ConversationService
 
 __all__ = [
     "ConversationNotFoundError",
+    "ConversationService",
     "ConversationServiceError",
     "ConversationValidationError",
-    "ConversationService",
+    "can_access_conversation_subject",
 ]

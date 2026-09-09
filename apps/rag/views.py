@@ -1,10 +1,10 @@
 import json
+from uuid import UUID
 
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-from apps.accounts.models import User
 from apps.academics.models import Subject
 from apps.documents.permissions import (
     is_documents_admin,
@@ -12,232 +12,453 @@ from apps.documents.permissions import (
     teacher_can_upload_for_subject,
 )
 
+from .conversations import (
+    ConversationNotFoundError,
+    ConversationService,
+    ConversationServiceError,
+    ConversationValidationError,
+    can_access_conversation_subject,
+)
 from .services import RagService, RagServiceError
 
 
-class RagBaseView(LoginRequiredMixin, View):
+class RagAskAPIView(LoginRequiredMixin, View):
     """
-    Base view for authenticated RAG API endpoints.
-    """
+    Stateless RAG question-answer endpoint.
 
-    login_url = "/auth/login/"
-
-
-class RagAskAPIView(RagBaseView):
-    """
-    Ask the LearnMetrics AI assistant a question.
-
-    POST /rag/ask/
-
-    Request:
-    {
-        "question": "What is normalization in DBMS?",
-        "subject_id": 1,
-        "top_k": 5
-    }
-
-    Response:
-    {
-        "answer": "....",
-        "sources": [
-            {
-                "document_id": 12,
-                "document_title": "DBMS Notes",
-                "chunk_id": 45,
-                "page_number": 7
-            }
-        ]
-    }
+    Existing endpoint retained for compatibility:
+        POST /rag/ask/
     """
 
-    http_method_names = ["post"]
-
-    def post(self, request, *args, **kwargs):
-        payload = self._parse_json(request)
-
-        if payload is None:
+    def post(self, request):
+        try:
+            data = json.loads(request.body or "{}")
+        except json.JSONDecodeError:
             return JsonResponse(
-                {
-                    "error": "Invalid JSON request body."
-                },
+                {"error": "Invalid JSON payload."},
                 status=400,
             )
 
-        validation_error = self._validate_payload(payload)
+        question = data.get("question")
+        subject_id = data.get("subject_id")
+        top_k = data.get("top_k")
 
-        if validation_error is not None:
+        # Validate all primitive inputs before database access.
+        if not isinstance(question, str) or not question.strip():
             return JsonResponse(
-                {
-                    "error": validation_error
-                },
+                {"error": "Question is required."},
                 status=400,
             )
 
-        question = payload["question"].strip()
-        subject_id = payload["subject_id"]
-        top_k = payload.get("top_k")
+        if not isinstance(subject_id, int) or isinstance(subject_id, bool):
+            return JsonResponse(
+                {"error": "A valid subject_id is required."},
+                status=400,
+            )
+
+        if top_k is not None:
+            if not isinstance(top_k, int) or isinstance(top_k, bool):
+                return JsonResponse(
+                    {"error": "top_k must be an integer."},
+                    status=400,
+                )
 
         try:
             subject = Subject.objects.get(pk=subject_id)
         except Subject.DoesNotExist:
             return JsonResponse(
-                {
-                    "error": "Subject not found."
-                },
+                {"error": "Subject not found."},
                 status=404,
             )
 
-        if not self._can_access_subject(
-            request.user,
-            subject,
-        ):
+        if not _can_access_subject(request.user, subject):
             return JsonResponse(
-                {
-                    "error": "You do not have access to this subject."
-                },
+                {"error": "You are not authorized to access this subject."},
                 status=403,
             )
 
-        rag_service = RagService()
+        service = RagService()
 
         try:
-            result = rag_service.answer_question_with_sources(
+            result = service.answer_question_with_sources(
                 user=request.user,
                 question=question,
                 subject=subject,
                 top_k=top_k,
             )
-        except RagServiceError:
+        except RagServiceError as exc:
             return JsonResponse(
-                {
-                    "error": "Unable to generate an answer at this time."
-                },
-                status=500,
-            )
-        except Exception:
-            return JsonResponse(
-                {
-                    "error": (
-                        "An unexpected error occurred while "
-                        "processing the question."
-                    )
-                },
+                {"error": str(exc)},
                 status=500,
             )
 
         return JsonResponse(
             {
                 "answer": result.answer,
-                "sources": self._serialize_sources(
-                    result.chunks
-                ),
-            },
-            status=200,
+                "sources": self._serialize_sources(result.chunks),
+            }
         )
 
     @staticmethod
-    def _parse_json(request):
-        try:
-            body = request.body.decode("utf-8")
-            return json.loads(body)
-        except (UnicodeDecodeError, json.JSONDecodeError):
-            return None
-
-    @staticmethod
-    def _validate_payload(payload):
-        if not isinstance(payload, dict):
-            return "Request body must be a JSON object."
-
-        question = payload.get("question")
-
-        if not isinstance(question, str):
-            return "Question must be a string."
-
-        if not question.strip():
-            return "Question cannot be empty."
-
-        if "subject_id" not in payload:
-            return "subject_id is required."
-
-        subject_id = payload["subject_id"]
-
-        if (
-            isinstance(subject_id, bool)
-            or not isinstance(subject_id, int)
-        ):
-            return "subject_id must be an integer."
-
-        if subject_id <= 0:
-            return "subject_id must be greater than zero."
-
-        if "top_k" in payload:
-            top_k = payload["top_k"]
-
-            if (
-                isinstance(top_k, bool)
-                or not isinstance(top_k, int)
-            ):
-                return "top_k must be an integer."
-
-            if top_k <= 0:
-                return "top_k must be greater than zero."
-
-        return None
-
-    @staticmethod
-    def _can_access_subject(user, subject):
-        if is_documents_admin(user):
-            return True
-
-        if (
-            user.is_authenticated
-            and user.is_active
-            and user.role == User.Roles.TEACHER
-        ):
-            return teacher_can_upload_for_subject(
-                user,
-                subject,
-            )
-
-        if (
-            user.is_authenticated
-            and user.is_active
-            and user.role == User.Roles.STUDENT
-        ):
-            return student_can_access_subject(
-                user,
-                subject,
-            )
-
-        return False
-
-    @staticmethod
     def _serialize_sources(chunks):
-        sources = []
+        """
+        Compatibility wrapper for existing API tests and callers.
 
-        for chunk in chunks:
-            document_version = getattr(
-                chunk,
-                "document_version",
-                None,
+        Source serialization remains centralized in the module-level
+        helper so conversation and stateless RAG APIs use the same
+        deterministic citation format.
+        """
+        return _serialize_sources(chunks)
+
+class ConversationListCreateAPIView(LoginRequiredMixin, View):
+    """
+    Conversation collection endpoint.
+
+    GET:
+        /rag/conversations/
+
+    POST:
+        /rag/conversations/
+    """
+
+    def get(self, request):
+        service = ConversationService()
+
+        try:
+            conversations = service.list_conversations(
+                user=request.user
+            )
+        except ConversationServiceError as exc:
+            return JsonResponse(
+                {"error": str(exc)},
+                status=400,
             )
 
-            document = getattr(
-                document_version,
-                "document",
-                None,
+        return JsonResponse(
+            {
+                "conversations": [
+                    _serialize_conversation(conversation)
+                    for conversation in conversations
+                ]
+            }
+        )
+
+    def post(self, request):
+        try:
+            data = json.loads(request.body or "{}")
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {"error": "Invalid JSON payload."},
+                status=400,
             )
 
-            if document is None:
-                continue
+        subject_id = data.get("subject_id")
+        title = data.get("title", "")
 
-            sources.append(
+        try:
+            subject_id = int(subject_id)
+        except (TypeError, ValueError):
+            return JsonResponse(
+                {"error": "A valid subject_id is required."},
+                status=400,
+            )
+
+        try:
+            subject = Subject.objects.get(pk=subject_id)
+        except Subject.DoesNotExist:
+            return JsonResponse(
+                {"error": "Subject not found."},
+                status=404,
+            )
+
+        if not can_access_conversation_subject(
+            request.user,
+            subject,
+        ):
+            return JsonResponse(
+                {"error": "You are not authorized to access this subject."},
+                status=403,
+            )
+
+        service = ConversationService()
+
+        try:
+            conversation = service.create_conversation(
+                user=request.user,
+                subject=subject,
+                title=title,
+            )
+        except ConversationValidationError as exc:
+            return JsonResponse(
+                {"error": str(exc)},
+                status=400,
+            )
+        except ConversationServiceError as exc:
+            return JsonResponse(
+                {"error": str(exc)},
+                status=500,
+            )
+
+        return JsonResponse(
+            {
+                "conversation": _serialize_conversation(conversation),
+            },
+            status=201,
+        )
+
+
+class ConversationDetailAPIView(LoginRequiredMixin, View):
+    """
+    Single conversation endpoint.
+
+    GET:
+        /rag/conversations/<conversation_id>/
+    """
+
+    def get(self, request, conversation_id):
+        service = ConversationService()
+
+        try:
+            conversation = service.get_conversation(
+                user=request.user,
+                conversation_id=conversation_id,
+            )
+        except ConversationNotFoundError as exc:
+            return JsonResponse(
+                {"error": str(exc)},
+                status=404,
+            )
+        except ConversationServiceError as exc:
+            return JsonResponse(
+                {"error": str(exc)},
+                status=400,
+            )
+
+        return JsonResponse(
+            {
+                "conversation": _serialize_conversation(
+                    conversation,
+                    include_messages=True,
+                )
+            }
+        )
+
+
+class ConversationMessageAPIView(LoginRequiredMixin, View):
+    """
+    Persistent RAG conversation endpoint.
+
+    POST:
+        /rag/conversations/<conversation_id>/messages/
+    """
+
+    def post(self, request, conversation_id):
+        try:
+            data = json.loads(request.body or "{}")
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {"error": "Invalid JSON payload."},
+                status=400,
+            )
+
+        question = data.get("question")
+
+        if not isinstance(question, str) or not question.strip():
+            return JsonResponse(
+                {"error": "Question is required."},
+                status=400,
+            )
+
+        conversation_service = ConversationService()
+
+        try:
+            conversation = conversation_service.get_conversation(
+                user=request.user,
+                conversation_id=conversation_id,
+            )
+        except ConversationNotFoundError as exc:
+            return JsonResponse(
+                {"error": str(exc)},
+                status=404,
+            )
+
+        if not can_access_conversation_subject(
+            request.user,
+            conversation.subject,
+        ):
+            return JsonResponse(
+                {"error": "You are not authorized to access this subject."},
+                status=403,
+            )
+
+        try:
+            top_k = data.get("top_k")
+
+            if top_k is not None:
+                top_k = int(top_k)
+
+        except (TypeError, ValueError):
+            return JsonResponse(
+                {"error": "top_k must be an integer."},
+                status=400,
+            )
+
+        # Persist the student's question first.
+        try:
+            user_message = conversation_service.add_user_message(
+                user=request.user,
+                conversation_id=conversation_id,
+                content=question,
+            )
+        except ConversationServiceError as exc:
+            return JsonResponse(
+                {"error": str(exc)},
+                status=400,
+            )
+
+        # Run the existing RAG pipeline.
+        rag_service = RagService()
+
+        try:
+            result = rag_service.answer_question_with_sources(
+                user=request.user,
+                question=question,
+                subject=conversation.subject,
+                top_k=top_k,
+            )
+        except RagServiceError as exc:
+            # The USER message intentionally remains persisted.
+            return JsonResponse(
                 {
-                    "document_id": document.id,
-                    "document_title": document.title,
-                    "chunk_id": chunk.id,
-                    "page_number": chunk.page_number,
-                }
+                    "error": str(exc),
+                    "message_id": str(user_message.id),
+                },
+                status=502,
             )
 
-        return sources
+        sources = _serialize_sources(result.chunks)
+
+        # Persist the generated answer and deterministic source metadata.
+        try:
+            assistant_message = (
+                conversation_service.add_assistant_message(
+                    user=request.user,
+                    conversation_id=conversation_id,
+                    content=result.answer,
+                    sources=sources,
+                )
+            )
+        except ConversationServiceError as exc:
+            return JsonResponse(
+                {"error": str(exc)},
+                status=500,
+            )
+
+        return JsonResponse(
+            {
+                "user_message": _serialize_message(user_message),
+                "assistant_message": _serialize_message(
+                    assistant_message
+                ),
+                "answer": result.answer,
+                "sources": sources,
+            }
+        )
+
+
+def _can_access_subject(user, subject):
+    """
+    Centralizes subject authorization for RAG APIs.
+    """
+
+    if is_documents_admin(user):
+        return True
+
+    if teacher_can_upload_for_subject(user, subject):
+        return True
+
+    if student_can_access_subject(user, subject):
+        return True
+
+    return False
+
+
+def _serialize_sources(chunks):
+    """
+    Convert retrieved DocumentChunk objects into deterministic
+    citation metadata.
+
+    No document content, files, or embeddings are exposed.
+    """
+
+    sources = []
+
+    for chunk in chunks:
+        document_version = getattr(
+            chunk,
+            "document_version",
+            None,
+        )
+
+        if document_version is None:
+            continue
+
+        document = getattr(
+            document_version,
+            "document",
+            None,
+        )
+
+        if document is None:
+            continue
+
+        sources.append(
+            {
+                "document_id": document.id,
+                "document_title": document.title,
+                "chunk_id": chunk.id,
+                "page_number": getattr(
+                    chunk,
+                    "page_number",
+                    None,
+                ),
+            }
+        )
+
+    return sources
+
+
+def _serialize_conversation(
+    conversation,
+    *,
+    include_messages=False,
+):
+    data = {
+        "id": str(conversation.id),
+        "subject_id": conversation.subject_id,
+        "subject_name": conversation.subject.name,
+        "title": conversation.title,
+        "is_active": conversation.is_active,
+        "created_at": conversation.created_at.isoformat(),
+        "updated_at": conversation.updated_at.isoformat(),
+    }
+
+    if include_messages:
+        data["messages"] = [
+            _serialize_message(message)
+            for message in conversation.messages.all()
+        ]
+
+    return data
+
+
+def _serialize_message(message):
+    return {
+        "id": str(message.id),
+        "conversation_id": str(message.conversation_id),
+        "role": message.role,
+        "content": message.content,
+        "sequence": message.sequence,
+        "metadata": message.metadata,
+        "created_at": message.created_at.isoformat(),
+    }

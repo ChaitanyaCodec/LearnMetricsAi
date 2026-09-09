@@ -28,6 +28,7 @@ urlpatterns = [
     path("students/", include("apps.students.urls")),
     path("teachers/", include("apps.teachers.urls")),
     path("documents/", include("apps.documents.urls")),
+    path("rag/", include("apps.rag.urls")),
 ]
 
 if settings.DEBUG:

@@ -13,7 +13,9 @@ class RagAskAPIViewTests(SimpleTestCase):
     """
     Tests for the RAG question-answer API endpoint.
     """
-
+    @staticmethod
+    def _serialize_sources(chunks):
+        return _serialize_sources(chunks)
     def setUp(self):
         self.factory = RequestFactory()
         self.url = "/rag/ask/"
