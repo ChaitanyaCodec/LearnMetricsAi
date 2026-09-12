@@ -3,19 +3,25 @@ from .config import (
     get_max_context_chunks,
 )
 from .exceptions import GenerationError
+from .providers.factory import get_llm_provider
 
 
 class AnswerGenerationService:
     """
     Builds a grounded generation prompt from retrieved
-    document chunks.
+    document chunks and generates an answer using the
+    configured LLM provider chain.
 
-    Actual LLM provider integration is intentionally kept
-    separate from this service.
+    Provider selection and fallback are handled by the
+    provider factory and manager.
     """
 
     def __init__(self, provider=None):
-        self.provider = provider
+        self.provider = (
+            provider
+            if provider is not None
+            else get_llm_provider()
+        )
 
     def generate(
         self,
@@ -44,11 +50,6 @@ class AnswerGenerationService:
                 "No usable context was retrieved."
             )
 
-        if self.provider is None:
-            raise GenerationError(
-                "No answer-generation provider is configured."
-            )
-
         prompt = self._build_prompt(
             question=question,
             context=context,
@@ -56,6 +57,8 @@ class AnswerGenerationService:
 
         try:
             return self.provider.generate(prompt)
+        except GenerationError:
+            raise
         except Exception as exc:
             raise GenerationError(
                 "Failed to generate an answer."
