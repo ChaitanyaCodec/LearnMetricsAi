@@ -82,7 +82,7 @@ LOGOUT_REDIRECT_URL = "/auth/login/"
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = DATABASES = {
+DATABASES = {
     "default": env.db(default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
 }
 
@@ -177,4 +177,19 @@ RAG_INDEXING_MAX_CHUNK_LENGTH = 10000
 RAG_RETRIEVAL_TOP_K = env.int(
     "RAG_RETRIEVAL_TOP_K",
     default=5,
+)
+
+
+# ----------------------------------------------------------------------------- 
+# RAG / LLM Provider settings
+# -----------------------------------------------------------------------------
+
+GROQ_API_KEY = env.str(
+    "GROQ_API_KEY",
+    default="",
+)
+
+GROQ_MODEL = env.str(
+    "GROQ_MODEL",
+    default="",
 )
