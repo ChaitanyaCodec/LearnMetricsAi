@@ -193,3 +193,13 @@ GROQ_MODEL = env.str(
     "GROQ_MODEL",
     default="",
 )
+
+GEMINI_API_KEY = env.str(
+    "GEMINI_API_KEY",
+    default="",
+)
+
+GEMINI_MODEL = env.str(
+    "GEMINI_MODEL",
+    default="",
+)

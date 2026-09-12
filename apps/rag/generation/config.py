@@ -37,3 +37,17 @@ def get_groq_model():
         "GROQ_MODEL",
         DEFAULT_GROQ_MODEL,
     )
+
+DEFAULT_GEMINI_MODEL = ""
+
+
+def get_gemini_api_key():
+    return getattr(settings, "GEMINI_API_KEY", "")
+
+
+def get_gemini_model():
+    return getattr(
+        settings,
+        "GEMINI_MODEL",
+        DEFAULT_GEMINI_MODEL,
+    )
