@@ -51,3 +51,22 @@ def get_gemini_model():
         "GEMINI_MODEL",
         DEFAULT_GEMINI_MODEL,
     )
+
+DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434"
+DEFAULT_OLLAMA_MODEL = "qwen2.5:3b"
+
+
+def get_ollama_base_url():
+    return getattr(
+        settings,
+        "OLLAMA_BASE_URL",
+        DEFAULT_OLLAMA_BASE_URL,
+    )
+
+
+def get_ollama_model():
+    return getattr(
+        settings,
+        "OLLAMA_MODEL",
+        DEFAULT_OLLAMA_MODEL,
+    )

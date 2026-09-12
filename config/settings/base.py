@@ -203,3 +203,14 @@ GEMINI_MODEL = env.str(
     "GEMINI_MODEL",
     default="",
 )
+
+
+OLLAMA_BASE_URL = env.str(
+    "OLLAMA_BASE_URL",
+    default="http://localhost:11434",
+)
+
+OLLAMA_MODEL = env.str(
+    "OLLAMA_MODEL",
+    default="qwen2.5:3b",
+)

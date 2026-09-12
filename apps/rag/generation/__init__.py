@@ -1,5 +1,10 @@
 from .exceptions import GenerationError
-from .providers import GeminiProvider, GroqProvider, LLMProvider
+from .providers import (
+    GeminiProvider,
+    GroqProvider,
+    LLMProvider,
+    OllamaProvider,
+)
 from .service import AnswerGenerationService
 
 __all__ = [
@@ -8,4 +13,5 @@ __all__ = [
     "LLMProvider",
     "GroqProvider",
     "GeminiProvider",
+    "OllamaProvider",
 ]
