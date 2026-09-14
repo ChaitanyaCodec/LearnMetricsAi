@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import transaction
 
 from apps.academics.models import Subject
@@ -8,6 +9,10 @@ from .exceptions import (
     ConversationServiceError,
     ConversationValidationError,
 )
+
+
+DEFAULT_HISTORY_LIMIT = 10
+MAX_HISTORY_LIMIT = 50
 
 
 class ConversationService:
@@ -62,6 +67,40 @@ class ConversationService:
             raise ConversationNotFoundError(
                 "Conversation was not found."
             ) from exc
+
+    def get_conversation_history(
+        self,
+        *,
+        user,
+        conversation_id,
+        limit=None,
+    ):
+        """
+        Return the latest messages from a conversation in
+        chronological order.
+
+        Conversation ownership is enforced through get_conversation().
+        The limit applies to the number of most recent messages.
+        """
+
+        self._validate_user(user)
+
+        conversation = self.get_conversation(
+            user=user,
+            conversation_id=conversation_id,
+        )
+
+        limit = self._resolve_history_limit(limit)
+
+        messages = list(
+            ChatMessage.objects
+            .filter(conversation=conversation)
+            .order_by("-sequence")[:limit]
+        )
+
+        messages.reverse()
+
+        return messages
 
     def add_user_message(
         self,
@@ -144,6 +183,33 @@ class ConversationService:
             conversation.save(update_fields=["updated_at"])
 
         return message
+
+    @staticmethod
+    def _resolve_history_limit(limit):
+        if limit is None:
+            limit = getattr(
+                settings,
+                "RAG_CONVERSATION_HISTORY_LIMIT",
+                DEFAULT_HISTORY_LIMIT,
+            )
+
+        if isinstance(limit, bool) or not isinstance(limit, int):
+            raise ConversationValidationError(
+                "Conversation history limit must be an integer."
+            )
+
+        if limit <= 0:
+            raise ConversationValidationError(
+                "Conversation history limit must be greater than zero."
+            )
+
+        if limit > MAX_HISTORY_LIMIT:
+            raise ConversationValidationError(
+                f"Conversation history limit cannot exceed "
+                f"{MAX_HISTORY_LIMIT}."
+            )
+
+        return limit
 
     @staticmethod
     def _validate_user(user):

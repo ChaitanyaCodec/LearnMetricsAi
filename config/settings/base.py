@@ -180,6 +180,12 @@ RAG_RETRIEVAL_TOP_K = env.int(
 )
 
 
+RAG_CONVERSATION_HISTORY_LIMIT = env.int(
+    "RAG_CONVERSATION_HISTORY_LIMIT",
+    default=10,
+)
+
+
 # ----------------------------------------------------------------------------- 
 # RAG / LLM Provider settings
 # -----------------------------------------------------------------------------

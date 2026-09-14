@@ -259,3 +259,58 @@ class RagServiceTests(SimpleTestCase):
                 second_chunk,
             ),
         )
+
+
+    def test_conversation_history_is_forwarded_to_generation(self):
+        embedding_service = Mock()
+        retrieval_service = Mock()
+        generation_service = Mock()
+
+        embedding_service.embed_text.return_value = [
+            0.1,
+            0.2,
+            0.3,
+        ]
+
+        chunk = Mock()
+        retrieval_service.retrieve.return_value = [chunk]
+
+        generation_service.generate.return_value = (
+            "AES supports 128, 192, and 256-bit keys."
+        )
+
+        service = RagService(
+            embedding_service=embedding_service,
+            retrieval_service=retrieval_service,
+            generation_service=generation_service,
+        )
+
+        history = [
+            Mock(
+                role="user",
+                content="What is AES?",
+            ),
+            Mock(
+                role="assistant",
+                content=(
+                    "AES is a symmetric encryption algorithm."
+                ),
+            ),
+        ]
+
+        result = service.answer_question_with_sources(
+            question="What key sizes does it support?",
+            subject=None,
+            conversation_history=history,
+        )
+
+        self.assertEqual(
+            result.answer,
+            "AES supports 128, 192, and 256-bit keys.",
+        )
+
+        generation_service.generate.assert_called_once_with(
+            question="What key sizes does it support?",
+            chunks=(chunk,),
+            conversation_history=history,
+        )

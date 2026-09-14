@@ -13,7 +13,7 @@ from apps.academics.models import (
     Subject,
 )
 from apps.rag.models import ChatMessage, Conversation
-from apps.rag.services import RagAnswer,RagServiceError
+from apps.rag.services import RagAnswer, RagServiceError
 
 
 class ConversationAPITestMixin:
@@ -436,3 +436,210 @@ class ConversationAPIWorkflowTests(
         )
 
         self.assertEqual(response.status_code, 404)
+
+    @patch("apps.rag.views.RagService")
+    def test_send_message_passes_previous_history_to_rag(
+        self,
+        rag_service_class,
+    ):
+        conversation = Conversation.objects.create(
+            user=self.user,
+            subject=self.subject,
+            title="Context Chat",
+        )
+
+        ChatMessage.objects.create(
+            conversation=conversation,
+            role=ChatMessage.Role.USER,
+            content="What is AES?",
+            sequence=1,
+        )
+
+        ChatMessage.objects.create(
+            conversation=conversation,
+            role=ChatMessage.Role.ASSISTANT,
+            content="AES is a symmetric encryption algorithm.",
+            sequence=2,
+        )
+
+        rag_service = rag_service_class.return_value
+
+        rag_service.answer_question_with_sources.return_value = (
+            RagAnswer(
+                answer="AES supports 128, 192, and 256-bit keys.",
+                chunks=(),
+            )
+        )
+
+        response = self.client.post(
+            reverse(
+                "rag:conversation-message",
+                kwargs={
+                    "conversation_id": conversation.id,
+                },
+            ),
+            data=json.dumps(
+                {
+                    "question": "What key sizes does it support?",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        rag_service.answer_question_with_sources.assert_called_once()
+
+        call_kwargs = (
+            rag_service.answer_question_with_sources.call_args.kwargs
+        )
+
+        history = call_kwargs["conversation_history"]
+
+        self.assertEqual(len(history), 2)
+
+        self.assertEqual(
+            history[0].content,
+            "What is AES?",
+        )
+
+        self.assertEqual(
+            history[1].content,
+            "AES is a symmetric encryption algorithm.",
+        )
+
+        self.assertEqual(
+            call_kwargs["question"],
+            "What key sizes does it support?",
+        )
+
+
+
+    @patch("apps.rag.views.RagService")
+    def test_current_question_is_not_in_previous_history(
+        self,
+        rag_service_class,
+    ):
+        conversation = Conversation.objects.create(
+            user=self.user,
+            subject=self.subject,
+            title="New Question Chat",
+        )
+
+        rag_service = rag_service_class.return_value
+
+        rag_service.answer_question_with_sources.return_value = (
+            RagAnswer(
+                answer="Answer.",
+                chunks=(),
+            )
+        )
+
+        question = "What is normalization?"
+
+        response = self.client.post(
+            reverse(
+                "rag:conversation-message",
+                kwargs={
+                    "conversation_id": conversation.id,
+                },
+            ),
+            data=json.dumps(
+                {
+                    "question": question,
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        history = (
+            rag_service
+            .answer_question_with_sources
+            .call_args
+            .kwargs["conversation_history"]
+        )
+
+        self.assertEqual(history, [])
+
+        messages = list(
+            ChatMessage.objects
+            .filter(conversation=conversation)
+            .order_by("sequence")
+        )
+
+        self.assertEqual(len(messages), 2)
+
+        self.assertEqual(
+            messages[0].content,
+            question,
+        )
+    @patch("apps.rag.views.RagService")
+    def test_send_message_uses_bounded_conversation_history(
+        self,
+        rag_service_class,
+    ):
+        conversation = Conversation.objects.create(
+            user=self.user,
+            subject=self.subject,
+            title="Limited History Chat",
+        )
+
+        for sequence in range(1, 6):
+            ChatMessage.objects.create(
+                conversation=conversation,
+                role=(
+                    ChatMessage.Role.USER
+                    if sequence % 2
+                    else ChatMessage.Role.ASSISTANT
+                ),
+                content=f"Previous message {sequence}",
+                sequence=sequence,
+            )
+
+        rag_service = rag_service_class.return_value
+
+        rag_service.answer_question_with_sources.return_value = (
+            RagAnswer(
+                answer="Answer.",
+                chunks=(),
+            )
+        )
+
+        response = self.client.post(
+            reverse(
+                "rag:conversation-message",
+                kwargs={
+                    "conversation_id": conversation.id,
+                },
+            ),
+            data=json.dumps(
+                {
+                    "question": "New question",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        history = (
+            rag_service
+            .answer_question_with_sources
+            .call_args
+            .kwargs["conversation_history"]
+        )
+
+        self.assertEqual(len(history), 5)
+
+        self.assertEqual(
+            [message.content for message in history],
+            [
+                "Previous message 1",
+                "Previous message 2",
+                "Previous message 3",
+                "Previous message 4",
+                "Previous message 5",
+            ],
+        )

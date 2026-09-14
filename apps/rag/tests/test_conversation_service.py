@@ -15,6 +15,13 @@ from apps.rag.conversations import (
 )
 from apps.rag.models import ChatMessage, Conversation
 
+from django.test import TestCase, override_settings
+
+
+from apps.rag.models import ChatMessage
+
+
+
 
 class ConversationServiceTestMixin:
     def create_academic_structure(self):
@@ -223,3 +230,129 @@ class ConversationServiceTests(
                 conversation_id=conversation.id,
                 content="Should fail",
             )
+
+
+
+
+
+class ConversationHistoryTests(
+    ConversationServiceTestMixin,
+    TestCase,
+):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="history@example.com",
+            password="test-password",
+        )
+
+        self.other_user = User.objects.create_user(
+            email="other-history@example.com",
+            password="test-password",
+        )
+
+        self.subject = self.create_academic_structure()
+        self.service = ConversationService()
+
+        self.conversation = self.service.create_conversation(
+            user=self.user,
+            subject=self.subject,
+            title="History Test",
+        )
+
+    def test_history_is_returned_in_chronological_order(self):
+        messages = []
+
+        for index in range(4):
+            messages.append(
+                self.service.add_user_message(
+                    user=self.user,
+                    conversation_id=self.conversation.id,
+                    content=f"Message {index + 1}",
+                )
+            )
+
+        history = self.service.get_conversation_history(
+            user=self.user,
+            conversation_id=self.conversation.id,
+        )
+
+        self.assertEqual(
+            [message.id for message in history],
+            [message.id for message in messages],
+        )
+
+    def test_history_limit_returns_latest_messages(self):
+        for index in range(6):
+            self.service.add_user_message(
+                user=self.user,
+                conversation_id=self.conversation.id,
+                content=f"Message {index + 1}",
+            )
+
+        history = self.service.get_conversation_history(
+            user=self.user,
+            conversation_id=self.conversation.id,
+            limit=3,
+        )
+
+        self.assertEqual(
+            [message.content for message in history],
+            [
+                "Message 4",
+                "Message 5",
+                "Message 6",
+            ],
+        )
+
+    def test_empty_conversation_returns_empty_history(self):
+        history = self.service.get_conversation_history(
+            user=self.user,
+            conversation_id=self.conversation.id,
+        )
+
+        self.assertEqual(history, [])
+
+    def test_other_user_cannot_access_conversation_history(self):
+        with self.assertRaises(ConversationNotFoundError):
+            self.service.get_conversation_history(
+                user=self.other_user,
+                conversation_id=self.conversation.id,
+            )
+
+    def test_invalid_limit_is_rejected(self):
+        with self.assertRaises(ConversationValidationError):
+            self.service.get_conversation_history(
+                user=self.user,
+                conversation_id=self.conversation.id,
+                limit=0,
+            )
+
+    def test_limit_above_maximum_is_rejected(self):
+        with self.assertRaises(ConversationValidationError):
+            self.service.get_conversation_history(
+                user=self.user,
+                conversation_id=self.conversation.id,
+                limit=51,
+            )
+
+    @override_settings(RAG_CONVERSATION_HISTORY_LIMIT=2)
+    def test_default_limit_uses_setting(self):
+        for index in range(4):
+            self.service.add_user_message(
+                user=self.user,
+                conversation_id=self.conversation.id,
+                content=f"Message {index + 1}",
+            )
+
+        history = self.service.get_conversation_history(
+            user=self.user,
+            conversation_id=self.conversation.id,
+        )
+
+        self.assertEqual(
+            [message.content for message in history],
+            [
+                "Message 3",
+                "Message 4",
+            ],
+        )

@@ -34,6 +34,8 @@ class RagService:
             ↓
         Vector Retrieval
             ↓
+        Conversation Context
+            ↓
         Answer Generation
             ↓
         Answer + Retrieved Sources
@@ -71,14 +73,13 @@ class RagService:
         top_k=None,
         subject=None,
     ):
-        """
-        Generate a question embedding and retrieve relevant chunks.
-        """
         self._validate_question(question)
 
         try:
-            query_embedding = self.embedding_service.embed_text(
-                question.strip()
+            query_embedding = (
+                self.embedding_service.embed_text(
+                    question.strip()
+                )
             )
         except Exception as exc:
             raise RagServiceError(
@@ -109,18 +110,14 @@ class RagService:
         question,
         subject=None,
         top_k=None,
+        conversation_history=None,
     ):
-        """
-        Generate an answer and return only the answer text.
-
-        This method is retained for compatibility with existing
-        RAG service consumers.
-        """
         result = self.answer_question_with_sources(
             user=user,
             question=question,
             subject=subject,
             top_k=top_k,
+            conversation_history=conversation_history,
         )
 
         return result.answer
@@ -132,11 +129,8 @@ class RagService:
         question,
         subject=None,
         top_k=None,
+        conversation_history=None,
     ):
-        """
-        Generate an answer while retaining the exact retrieved
-        chunks used as generation context.
-        """
         self._validate_question(question)
 
         retrieve_kwargs = {
@@ -158,10 +152,19 @@ class RagService:
 
         chunks = tuple(chunks)
 
+        generation_kwargs = {
+            "question": question.strip(),
+            "chunks": chunks,
+        }
+
+        if conversation_history is not None:
+            generation_kwargs[
+                "conversation_history"
+            ] = conversation_history
+
         try:
             answer = self.generation_service.generate(
-                question=question.strip(),
-                chunks=chunks,
+                **generation_kwargs
             )
         except Exception as exc:
             raise RagServiceError(

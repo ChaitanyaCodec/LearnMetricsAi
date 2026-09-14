@@ -9,8 +9,7 @@ from .providers.factory import get_llm_provider
 class AnswerGenerationService:
     """
     Builds a grounded generation prompt from retrieved
-    document chunks and generates an answer using the
-    configured LLM provider chain.
+    document chunks and conversation history.
 
     Provider selection and fallback are handled by the
     provider factory and manager.
@@ -28,6 +27,7 @@ class AnswerGenerationService:
         *,
         question,
         chunks,
+        conversation_history=None,
     ):
         self._validate_question(question)
 
@@ -50,9 +50,14 @@ class AnswerGenerationService:
                 "No usable context was retrieved."
             )
 
+        history = self._build_history(
+            conversation_history
+        )
+
         prompt = self._build_prompt(
             question=question,
             context=context,
+            history=history,
         )
 
         try:
@@ -110,16 +115,81 @@ class AnswerGenerationService:
         return "\n\n".join(parts)
 
     @staticmethod
-    def _build_prompt(*, question, context):
+    def _build_history(conversation_history):
+        """
+        Convert conversation messages into bounded prompt text.
+
+        The supplied history is expected to already be ordered
+        chronologically by ConversationService.
+        """
+
+        if conversation_history is None:
+            return ""
+
+        try:
+            messages = list(conversation_history)
+        except TypeError as exc:
+            raise GenerationError(
+                "Conversation history must be iterable."
+            ) from exc
+
+        parts = []
+
+        for message in messages:
+            role = getattr(message, "role", None)
+            content = getattr(message, "content", None)
+
+            if not isinstance(content, str):
+                continue
+
+            content = content.strip()
+
+            if not content:
+                continue
+
+            if role == "user":
+                label = "User"
+            elif role == "assistant":
+                label = "Assistant"
+            else:
+                continue
+
+            parts.append(
+                f"{label}: {content}"
+            )
+
+        return "\n".join(parts)
+
+    @staticmethod
+    def _build_prompt(
+        *,
+        question,
+        context,
+        history="",
+    ):
+        history_section = (
+            history
+            if history
+            else "No previous conversation."
+        )
+
         return (
             "You are an educational assistant for LearnMetrics AI.\n"
             "Answer the student's question using only the provided "
-            "context.\n"
-            "If the context does not contain enough information, "
-            "clearly say that the information is not available "
-            "in the provided documents.\n"
+            "document context.\n"
+            "Use conversation history only to understand references "
+            "and follow-up questions.\n"
+            "The retrieved document context is the authoritative "
+            "source of factual information.\n"
+            "If the document context does not contain enough "
+            "information, clearly say that the information is not "
+            "available in the provided documents.\n"
             "Do not invent facts.\n\n"
-            f"CONTEXT:\n{context}\n\n"
-            f"QUESTION:\n{question.strip()}\n\n"
+            f"CONVERSATION HISTORY:\n"
+            f"{history_section}\n\n"
+            f"RETRIEVED DOCUMENT CONTEXT:\n"
+            f"{context}\n\n"
+            f"CURRENT QUESTION:\n"
+            f"{question.strip()}\n\n"
             "ANSWER:"
         )

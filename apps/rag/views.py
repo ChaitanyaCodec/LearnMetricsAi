@@ -1,9 +1,7 @@
 import json
-from uuid import UUID
-
 from django.http import JsonResponse
-from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import View
 
 from apps.academics.models import Subject
 from apps.documents.permissions import (
@@ -109,6 +107,7 @@ class RagAskAPIView(LoginRequiredMixin, View):
         deterministic citation format.
         """
         return _serialize_sources(chunks)
+
 
 class ConversationListCreateAPIView(LoginRequiredMixin, View):
     """
@@ -281,6 +280,11 @@ class ConversationMessageAPIView(LoginRequiredMixin, View):
                 {"error": str(exc)},
                 status=404,
             )
+        except ConversationServiceError as exc:
+            return JsonResponse(
+                {"error": str(exc)},
+                status=400,
+            )
 
         if not can_access_conversation_subject(
             request.user,
@@ -300,6 +304,22 @@ class ConversationMessageAPIView(LoginRequiredMixin, View):
                     status=400,
                 )
 
+        # Load previous conversation history BEFORE saving the
+        # current user message so the current question is not
+        # duplicated inside the generation context.
+        try:
+            conversation_history = (
+                conversation_service.get_conversation_history(
+                    user=request.user,
+                    conversation_id=conversation_id,
+                )
+            )
+        except ConversationServiceError as exc:
+            return JsonResponse(
+                {"error": str(exc)},
+                status=400,
+            )
+
         # Persist the student's question first.
         try:
             user_message = conversation_service.add_user_message(
@@ -313,7 +333,8 @@ class ConversationMessageAPIView(LoginRequiredMixin, View):
                 status=400,
             )
 
-        # Run the existing RAG pipeline.
+        # Run the existing RAG pipeline with previous conversation
+        # context.
         rag_service = RagService()
 
         try:
@@ -322,6 +343,7 @@ class ConversationMessageAPIView(LoginRequiredMixin, View):
                 question=question,
                 subject=conversation.subject,
                 top_k=top_k,
+                conversation_history=conversation_history,
             )
         except RagServiceError as exc:
             # The USER message intentionally remains persisted.
@@ -364,98 +386,98 @@ class ConversationMessageAPIView(LoginRequiredMixin, View):
 
 
 def _can_access_subject(user, subject):
-    """
-    Centralizes subject authorization for RAG APIs.
-    """
+        """
+        Centralizes subject authorization for RAG APIs.
+        """
 
-    if is_documents_admin(user):
-        return True
+        if is_documents_admin(user):
+            return True
 
-    if teacher_can_upload_for_subject(user, subject):
-        return True
+        if teacher_can_upload_for_subject(user, subject):
+            return True
 
-    if student_can_access_subject(user, subject):
-        return True
+        if student_can_access_subject(user, subject):
+            return True
 
-    return False
+        return False
 
 
 def _serialize_sources(chunks):
-    """
-    Convert retrieved DocumentChunk objects into deterministic
-    citation metadata.
+        """
+        Convert retrieved DocumentChunk objects into deterministic
+        citation metadata.
 
-    No document content, files, or embeddings are exposed.
-    """
+        No document content, files, or embeddings are exposed.
+        """
 
-    sources = []
+        sources = []
 
-    for chunk in chunks:
-        document_version = getattr(
-            chunk,
-            "document_version",
-            None,
-        )
+        for chunk in chunks:
+            document_version = getattr(
+                chunk,
+                "document_version",
+                None,
+            )
 
-        if document_version is None:
-            continue
+            if document_version is None:
+                continue
 
-        document = getattr(
-            document_version,
-            "document",
-            None,
-        )
+            document = getattr(
+                document_version,
+                "document",
+                None,
+            )
 
-        if document is None:
-            continue
+            if document is None:
+                continue
 
-        sources.append(
-            {
-                "document_id": document.id,
-                "document_title": document.title,
-                "chunk_id": chunk.id,
-                "page_number": getattr(
-                    chunk,
-                    "page_number",
-                    None,
-                ),
-            }
-        )
+            sources.append(
+                {
+                    "document_id": document.id,
+                    "document_title": document.title,
+                    "chunk_id": chunk.id,
+                    "page_number": getattr(
+                        chunk,
+                        "page_number",
+                        None,
+                    ),
+                }
+            )
 
-    return sources
+        return sources
 
 
 def _serialize_conversation(
-    conversation,
-    *,
-    include_messages=False,
-):
-    data = {
-        "id": str(conversation.id),
-        "subject_id": conversation.subject_id,
-        "subject_name": conversation.subject.name,
-        "title": conversation.title,
-        "is_active": conversation.is_active,
-        "created_at": conversation.created_at.isoformat(),
-        "updated_at": conversation.updated_at.isoformat(),
-    }
+        conversation,
+        *,
+        include_messages=False,
+    ):
+        data = {
+            "id": str(conversation.id),
+            "subject_id": conversation.subject_id,
+            "subject_name": conversation.subject.name,
+            "title": conversation.title,
+            "is_active": conversation.is_active,
+            "created_at": conversation.created_at.isoformat(),
+            "updated_at": conversation.updated_at.isoformat(),
+        }
 
-    if include_messages:
-        data["messages"] = [
-            _serialize_message(message)
-            for message in conversation.messages.all()
-        ]
+        if include_messages:
+            data["messages"] = [
+                _serialize_message(message)
+                for message in conversation.messages.all()
+            ]
 
-    return data
+        return data
 
 
 def _serialize_message(message):
-    return {
-        "id": str(message.id),
-        "conversation_id": str(message.conversation_id),
-        "role": message.role,
-        "content": message.content,
-        "sequence": message.sequence,
-        "metadata": message.metadata,
-        "created_at": message.created_at.isoformat(),
-    }
+        return {
+            "id": str(message.id),
+            "conversation_id": str(message.conversation_id),
+            "role": message.role,
+            "content": message.content,
+            "sequence": message.sequence,
+            "metadata": message.metadata,
+            "created_at": message.created_at.isoformat(),
+        }
