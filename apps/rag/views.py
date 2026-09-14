@@ -1,6 +1,7 @@
 import json
-from django.http import JsonResponse
+
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
 from django.views import View
 
 from apps.academics.models import Subject
@@ -17,6 +18,7 @@ from .conversations import (
     ConversationValidationError,
     can_access_conversation_subject,
 )
+from .retrieval.config import MAX_TOP_K
 from .services import RagService, RagServiceError
 
 
@@ -41,7 +43,6 @@ class RagAskAPIView(LoginRequiredMixin, View):
         subject_id = data.get("subject_id")
         top_k = data.get("top_k")
 
-        # Validate all primitive inputs before database access.
         if not isinstance(question, str) or not question.strip():
             return JsonResponse(
                 {"error": "Question is required."},
@@ -54,12 +55,13 @@ class RagAskAPIView(LoginRequiredMixin, View):
                 status=400,
             )
 
-        if top_k is not None:
-            if not isinstance(top_k, int) or isinstance(top_k, bool):
-                return JsonResponse(
-                    {"error": "top_k must be an integer."},
-                    status=400,
-                )
+        top_k_error = _validate_top_k(top_k)
+
+        if top_k_error:
+            return JsonResponse(
+                {"error": top_k_error},
+                status=400,
+            )
 
         try:
             subject = Subject.objects.get(pk=subject_id)
@@ -87,7 +89,7 @@ class RagAskAPIView(LoginRequiredMixin, View):
         except RagServiceError as exc:
             return JsonResponse(
                 {"error": str(exc)},
-                status=500,
+                status=502,
             )
 
         return JsonResponse(
@@ -101,10 +103,6 @@ class RagAskAPIView(LoginRequiredMixin, View):
     def _serialize_sources(chunks):
         """
         Compatibility wrapper for existing API tests and callers.
-
-        Source serialization remains centralized in the module-level
-        helper so conversation and stateless RAG APIs use the same
-        deterministic citation format.
         """
         return _serialize_sources(chunks)
 
@@ -154,9 +152,11 @@ class ConversationListCreateAPIView(LoginRequiredMixin, View):
         subject_id = data.get("subject_id")
         title = data.get("title", "")
 
-        try:
-            subject_id = int(subject_id)
-        except (TypeError, ValueError):
+        if (
+            isinstance(subject_id, bool)
+            or not isinstance(subject_id, int)
+            or subject_id <= 0
+        ):
             return JsonResponse(
                 {"error": "A valid subject_id is required."},
                 status=400,
@@ -297,16 +297,14 @@ class ConversationMessageAPIView(LoginRequiredMixin, View):
 
         top_k = data.get("top_k")
 
-        if top_k is not None:
-            if not isinstance(top_k, int) or isinstance(top_k, bool):
-                return JsonResponse(
-                    {"error": "top_k must be an integer."},
-                    status=400,
-                )
+        top_k_error = _validate_top_k(top_k)
 
-        # Load previous conversation history BEFORE saving the
-        # current user message so the current question is not
-        # duplicated inside the generation context.
+        if top_k_error:
+            return JsonResponse(
+                {"error": top_k_error},
+                status=400,
+            )
+
         try:
             conversation_history = (
                 conversation_service.get_conversation_history(
@@ -320,7 +318,6 @@ class ConversationMessageAPIView(LoginRequiredMixin, View):
                 status=400,
             )
 
-        # Persist the student's question first.
         try:
             user_message = conversation_service.add_user_message(
                 user=request.user,
@@ -333,8 +330,6 @@ class ConversationMessageAPIView(LoginRequiredMixin, View):
                 status=400,
             )
 
-        # Run the existing RAG pipeline with previous conversation
-        # context.
         rag_service = RagService()
 
         try:
@@ -346,7 +341,6 @@ class ConversationMessageAPIView(LoginRequiredMixin, View):
                 conversation_history=conversation_history,
             )
         except RagServiceError as exc:
-            # The USER message intentionally remains persisted.
             return JsonResponse(
                 {
                     "error": str(exc),
@@ -357,7 +351,6 @@ class ConversationMessageAPIView(LoginRequiredMixin, View):
 
         sources = _serialize_sources(result.chunks)
 
-        # Persist the generated answer and deterministic source metadata.
         try:
             assistant_message = (
                 conversation_service.add_assistant_message(
@@ -385,99 +378,123 @@ class ConversationMessageAPIView(LoginRequiredMixin, View):
         )
 
 
+def _validate_top_k(top_k):
+    """
+    Validate optional retrieval top_k consistently across RAG APIs.
+
+    Returns:
+        None when valid.
+        Error message string when invalid.
+    """
+
+    if top_k is None:
+        return None
+
+    if isinstance(top_k, bool) or not isinstance(top_k, int):
+        return "top_k must be an integer."
+
+    if top_k <= 0:
+        return "top_k must be greater than zero."
+
+    if top_k > MAX_TOP_K:
+        return f"top_k cannot exceed {MAX_TOP_K}."
+
+    return None
+
+
 def _can_access_subject(user, subject):
-        """
-        Centralizes subject authorization for RAG APIs.
-        """
+    """
+    Centralizes subject authorization for RAG APIs.
+    """
 
-        if is_documents_admin(user):
-            return True
+    if is_documents_admin(user):
+        return True
 
-        if teacher_can_upload_for_subject(user, subject):
-            return True
+    if teacher_can_upload_for_subject(user, subject):
+        return True
 
-        if student_can_access_subject(user, subject):
-            return True
+    if student_can_access_subject(user, subject):
+        return True
 
-        return False
+    return False
 
 
 def _serialize_sources(chunks):
-        """
-        Convert retrieved DocumentChunk objects into deterministic
-        citation metadata.
+    """
+    Convert retrieved DocumentChunk objects into deterministic
+    citation metadata.
 
-        No document content, files, or embeddings are exposed.
-        """
+    No document content, files, or embeddings are exposed.
+    """
 
-        sources = []
+    sources = []
 
-        for chunk in chunks:
-            document_version = getattr(
-                chunk,
-                "document_version",
-                None,
-            )
+    for chunk in chunks:
+        document_version = getattr(
+            chunk,
+            "document_version",
+            None,
+        )
 
-            if document_version is None:
-                continue
+        if document_version is None:
+            continue
 
-            document = getattr(
-                document_version,
-                "document",
-                None,
-            )
+        document = getattr(
+            document_version,
+            "document",
+            None,
+        )
 
-            if document is None:
-                continue
+        if document is None:
+            continue
 
-            sources.append(
-                {
-                    "document_id": document.id,
-                    "document_title": document.title,
-                    "chunk_id": chunk.id,
-                    "page_number": getattr(
-                        chunk,
-                        "page_number",
-                        None,
-                    ),
-                }
-            )
+        sources.append(
+            {
+                "document_id": document.id,
+                "document_title": document.title,
+                "chunk_id": chunk.id,
+                "page_number": getattr(
+                    chunk,
+                    "page_number",
+                    None,
+                ),
+            }
+        )
 
-        return sources
+    return sources
 
 
 def _serialize_conversation(
-        conversation,
-        *,
-        include_messages=False,
-    ):
-        data = {
-            "id": str(conversation.id),
-            "subject_id": conversation.subject_id,
-            "subject_name": conversation.subject.name,
-            "title": conversation.title,
-            "is_active": conversation.is_active,
-            "created_at": conversation.created_at.isoformat(),
-            "updated_at": conversation.updated_at.isoformat(),
-        }
+    conversation,
+    *,
+    include_messages=False,
+):
+    data = {
+        "id": str(conversation.id),
+        "subject_id": conversation.subject_id,
+        "subject_name": conversation.subject.name,
+        "title": conversation.title,
+        "is_active": conversation.is_active,
+        "created_at": conversation.created_at.isoformat(),
+        "updated_at": conversation.updated_at.isoformat(),
+    }
 
-        if include_messages:
-            data["messages"] = [
-                _serialize_message(message)
-                for message in conversation.messages.all()
-            ]
+    if include_messages:
+        data["messages"] = [
+            _serialize_message(message)
+            for message in conversation.messages.all()
+        ]
 
-        return data
+    return data
 
 
 def _serialize_message(message):
-        return {
-            "id": str(message.id),
-            "conversation_id": str(message.conversation_id),
-            "role": message.role,
-            "content": message.content,
-            "sequence": message.sequence,
-            "metadata": message.metadata,
-            "created_at": message.created_at.isoformat(),
-        }
+    return {
+        "id": str(message.id),
+        "conversation_id": str(message.conversation_id),
+        "role": message.role,
+        "content": message.content,
+        "sequence": message.sequence,
+        "metadata": message.metadata,
+        "created_at": message.created_at.isoformat(),
+    }

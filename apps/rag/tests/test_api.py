@@ -5,6 +5,7 @@ from unittest.mock import patch
 from django.test import RequestFactory, SimpleTestCase
 
 from apps.accounts.models import User
+from apps.rag.retrieval.config import MAX_TOP_K
 from apps.rag.services import RagAnswer, RagServiceError
 from apps.rag.views import RagAskAPIView
 
@@ -13,9 +14,7 @@ class RagAskAPIViewTests(SimpleTestCase):
     """
     Tests for the RAG question-answer API endpoint.
     """
-    @staticmethod
-    def _serialize_sources(chunks):
-        return _serialize_sources(chunks)
+
     def setUp(self):
         self.factory = RequestFactory()
         self.url = "/rag/ask/"
@@ -93,6 +92,19 @@ class RagAskAPIViewTests(SimpleTestCase):
 
         self.assertEqual(response.status_code, 400)
 
+    def test_boolean_subject_id_is_rejected(self):
+        user = self._make_user()
+
+        response = self.make_request(
+            {
+                "question": "What is normalization?",
+                "subject_id": True,
+            },
+            user,
+        )
+
+        self.assertEqual(response.status_code, 400)
+
     def test_top_k_must_be_integer(self):
         user = self._make_user()
 
@@ -106,6 +118,77 @@ class RagAskAPIViewTests(SimpleTestCase):
         )
 
         self.assertEqual(response.status_code, 400)
+
+    def test_boolean_top_k_is_rejected(self):
+        user = self._make_user()
+
+        response = self.make_request(
+            {
+                "question": "What is normalization?",
+                "subject_id": 1,
+                "top_k": True,
+            },
+            user,
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_zero_top_k_is_rejected(self):
+        user = self._make_user()
+
+        response = self.make_request(
+            {
+                "question": "What is normalization?",
+                "subject_id": 1,
+                "top_k": 0,
+            },
+            user,
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+        self.assertEqual(
+            json.loads(response.content)["error"],
+            "top_k must be greater than zero.",
+        )
+
+    def test_negative_top_k_is_rejected(self):
+        user = self._make_user()
+
+        response = self.make_request(
+            {
+                "question": "What is normalization?",
+                "subject_id": 1,
+                "top_k": -1,
+            },
+            user,
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+        self.assertEqual(
+            json.loads(response.content)["error"],
+            "top_k must be greater than zero.",
+        )
+
+    def test_top_k_above_maximum_is_rejected(self):
+        user = self._make_user()
+
+        response = self.make_request(
+            {
+                "question": "What is normalization?",
+                "subject_id": 1,
+                "top_k": MAX_TOP_K + 1,
+            },
+            user,
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+        self.assertEqual(
+            json.loads(response.content)["error"],
+            f"top_k cannot exceed {MAX_TOP_K}.",
+        )
 
     @patch("apps.rag.views.Subject.objects.get")
     @patch(
@@ -285,7 +368,7 @@ class RagAskAPIViewTests(SimpleTestCase):
         return_value=True,
     )
     @patch("apps.rag.views.RagService")
-    def test_rag_service_failure_returns_500(
+    def test_rag_service_failure_returns_502(
         self,
         mock_rag_service,
         mock_admin,
@@ -309,7 +392,12 @@ class RagAskAPIViewTests(SimpleTestCase):
             user,
         )
 
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 502)
+
+        self.assertEqual(
+            json.loads(response.content)["error"],
+            "Generation failed.",
+        )
 
     @patch("apps.rag.views.Subject.objects.get")
     @patch(
