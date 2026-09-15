@@ -1,4 +1,6 @@
 from .config import (
+    MAX_ALLOWED_CONTEXT_CHARACTERS,
+    MAX_ALLOWED_CONTEXT_CHUNKS,
     get_max_context_characters,
     get_max_context_chunks,
 )
@@ -38,7 +40,7 @@ class AnswerGenerationService:
 
         chunks = list(chunks)
 
-        max_chunks = get_max_context_chunks()
+        max_chunks = self._resolve_max_context_chunks()
 
         if len(chunks) > max_chunks:
             chunks = chunks[:max_chunks]
@@ -82,13 +84,58 @@ class AnswerGenerationService:
             )
 
     @staticmethod
-    def _build_context(chunks):
-        max_characters = get_max_context_characters()
+    def _resolve_max_context_chunks():
+        value = get_max_context_chunks()
+
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise GenerationError(
+                "Maximum context chunks must be an integer."
+            )
+
+        if value <= 0:
+            raise GenerationError(
+                "Maximum context chunks must be greater than zero."
+            )
+
+        if value > MAX_ALLOWED_CONTEXT_CHUNKS:
+            raise GenerationError(
+                f"Maximum context chunks cannot exceed "
+                f"{MAX_ALLOWED_CONTEXT_CHUNKS}."
+            )
+
+        return value
+
+    @staticmethod
+    def _resolve_max_context_characters():
+        value = get_max_context_characters()
+
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise GenerationError(
+                "Maximum context characters must be an integer."
+            )
+
+        if value <= 0:
+            raise GenerationError(
+                "Maximum context characters must be greater than zero."
+            )
+
+        if value > MAX_ALLOWED_CONTEXT_CHARACTERS:
+            raise GenerationError(
+                f"Maximum context characters cannot exceed "
+                f"{MAX_ALLOWED_CONTEXT_CHARACTERS}."
+            )
+
+        return value
+
+    @classmethod
+    def _build_context(cls, chunks):
+        max_characters = cls._resolve_max_context_characters()
 
         parts = []
         total_characters = 0
+        source_number = 0
 
-        for index, chunk in enumerate(chunks, start=1):
+        for chunk in chunks:
             content = getattr(chunk, "content", None)
 
             if not isinstance(content, str):
@@ -106,8 +153,13 @@ class AnswerGenerationService:
 
             content = content[:remaining]
 
+            if not content:
+                continue
+
+            source_number += 1
+
             parts.append(
-                f"[Source {index}]\n{content}"
+                f"[Source {source_number}]\n{content}"
             )
 
             total_characters += len(content)
@@ -117,7 +169,7 @@ class AnswerGenerationService:
     @staticmethod
     def _build_history(conversation_history):
         """
-        Convert conversation messages into bounded prompt text.
+        Convert conversation messages into prompt text.
 
         The supplied history is expected to already be ordered
         chronologically by ConversationService.

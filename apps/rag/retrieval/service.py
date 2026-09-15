@@ -8,7 +8,12 @@ from apps.documents.models import (
     DocumentVersion,
 )
 
-from .config import MAX_TOP_K, get_default_top_k
+from .config import (
+    MAX_ALLOWED_DISTANCE,
+    MAX_TOP_K,
+    get_default_top_k,
+    get_max_distance,
+)
 from .exceptions import RetrievalError
 
 
@@ -30,11 +35,15 @@ class RetrievalService:
 
         Only chunks belonging to active, approved, published,
         processed document versions are considered.
+
+        Chunks exceeding the configured cosine-distance threshold
+        are excluded from retrieval.
         """
 
         self._validate_embedding(query_embedding)
 
         top_k = self._resolve_top_k(top_k)
+        max_distance = self._resolve_max_distance()
 
         queryset = (
             DocumentChunk.objects
@@ -73,6 +82,10 @@ class RetrievalService:
                 document_version__document__subject=subject,
             )
 
+        queryset = queryset.filter(
+            distance__lte=max_distance,
+        )
+
         return list(queryset[:top_k])
 
     @staticmethod
@@ -100,7 +113,7 @@ class RetrievalService:
         if top_k is None:
             top_k = get_default_top_k()
 
-        if not isinstance(top_k, int):
+        if isinstance(top_k, bool) or not isinstance(top_k, int):
             raise RetrievalError(
                 "top_k must be an integer."
             )
@@ -116,3 +129,30 @@ class RetrievalService:
             )
 
         return top_k
+
+    @staticmethod
+    def _resolve_max_distance():
+        max_distance = get_max_distance()
+
+        if isinstance(max_distance, bool):
+            raise RetrievalError(
+                "Maximum retrieval distance must be a number."
+            )
+
+        if not isinstance(max_distance, (int, float)):
+            raise RetrievalError(
+                "Maximum retrieval distance must be a number."
+            )
+
+        if max_distance < 0:
+            raise RetrievalError(
+                "Maximum retrieval distance cannot be negative."
+            )
+
+        if max_distance > MAX_ALLOWED_DISTANCE:
+            raise RetrievalError(
+                f"Maximum retrieval distance cannot exceed "
+                f"{MAX_ALLOWED_DISTANCE}."
+            )
+
+        return max_distance

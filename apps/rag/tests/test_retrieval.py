@@ -445,3 +445,38 @@ class RetrievalServiceTests(TestCase):
 
         self.assertIn(new_chunk.id, result_ids)
         self.assertNotIn(old_chunk.id, result_ids)
+
+
+    def test_distance_threshold_excludes_irrelevant_chunks(self):
+        irrelevant_chunk = DocumentChunk.objects.create(
+            document_version=self.version,
+            chunk_index=3,
+            content="This chunk is intentionally unrelated.",
+        )
+
+        irrelevant_vector = [0.0] * 384
+        irrelevant_vector[1] = 1.0
+
+        ChunkEmbedding.objects.create(
+            document_chunk=irrelevant_chunk,
+            embedding=irrelevant_vector,
+            model_name=(
+                "sentence-transformers/"
+                "all-MiniLM-L6-v2"
+            ),
+            model_version="",
+            dimensions=384,
+        )
+
+        query_embedding = [0.0] * 384
+        query_embedding[0] = 1.0
+
+        results = self.service.retrieve(
+            query_embedding=query_embedding,
+            top_k=10,
+        )
+
+        self.assertNotIn(
+            irrelevant_chunk,
+            results,
+        )

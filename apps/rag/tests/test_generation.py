@@ -283,3 +283,184 @@ class AnswerGenerationServiceTests(SimpleTestCase):
             "No previous conversation.",
             prompt,
         )
+
+    def test_context_chunk_limit_is_enforced(self):
+        provider = Mock()
+        provider.generate.return_value = "Answer."
+
+        service = AnswerGenerationService(
+            provider=provider,
+        )
+
+        chunks = []
+
+        for index in range(7):
+            chunk = Mock()
+            chunk.content = f"Document content {index}."
+            chunks.append(chunk)
+
+        with self.settings(
+            RAG_GENERATION_MAX_CONTEXT_CHUNKS=2,
+        ):
+            service.generate(
+                question="What is this?",
+                chunks=chunks,
+            )
+
+        prompt = provider.generate.call_args.args[0]
+
+        self.assertIn(
+            "Document content 0.",
+            prompt,
+        )
+
+        self.assertIn(
+            "Document content 1.",
+            prompt,
+        )
+
+        self.assertNotIn(
+            "Document content 2.",
+            prompt,
+        )
+
+    def test_context_character_limit_is_enforced(self):
+        provider = Mock()
+        provider.generate.return_value = "Answer."
+
+        service = AnswerGenerationService(
+            provider=provider,
+        )
+
+        chunk = Mock()
+        chunk.content = "A" * 100
+
+        with self.settings(
+            RAG_GENERATION_MAX_CONTEXT_CHARACTERS=25,
+        ):
+            service.generate(
+                question="What is this?",
+                chunks=[chunk],
+            )
+
+        prompt = provider.generate.call_args.args[0]
+
+        self.assertIn(
+            "[Source 1]",
+            prompt,
+        )
+
+        context = prompt.split(
+            "RETRIEVED DOCUMENT CONTEXT:\n",
+            1,
+        )[1].split(
+            "\n\nCURRENT QUESTION:",
+            1,
+        )[0]
+
+        self.assertEqual(
+            len(context.split("\n", 1)[1]),
+            25,
+        )
+
+    def test_invalid_chunks_do_not_create_source_number_gaps(self):
+        provider = Mock()
+        provider.generate.return_value = "Answer."
+
+        service = AnswerGenerationService(
+            provider=provider,
+        )
+
+        invalid_chunk = Mock()
+        invalid_chunk.content = "   "
+
+        valid_chunk = Mock()
+        valid_chunk.content = "Valid document content."
+
+        service.generate(
+            question="What is this?",
+            chunks=[
+                invalid_chunk,
+                valid_chunk,
+            ],
+        )
+
+        prompt = provider.generate.call_args.args[0]
+
+        self.assertIn(
+            "[Source 1]\nValid document content.",
+            prompt,
+        )
+
+        self.assertNotIn(
+            "[Source 2]",
+            prompt,
+        )
+
+    def test_invalid_max_context_chunks_configuration_is_rejected(self):
+        service = AnswerGenerationService(
+            provider=Mock(),
+        )
+
+        chunk = Mock()
+        chunk.content = "Document content."
+
+        with self.settings(
+            RAG_GENERATION_MAX_CONTEXT_CHUNKS=0,
+        ):
+            with self.assertRaises(GenerationError):
+                service.generate(
+                    question="What is this?",
+                    chunks=[chunk],
+                )
+
+    def test_excessive_max_context_chunks_configuration_is_rejected(self):
+        service = AnswerGenerationService(
+            provider=Mock(),
+        )
+
+        chunk = Mock()
+        chunk.content = "Document content."
+
+        with self.settings(
+            RAG_GENERATION_MAX_CONTEXT_CHUNKS=21,
+        ):
+            with self.assertRaises(GenerationError):
+                service.generate(
+                    question="What is this?",
+                    chunks=[chunk],
+                )
+
+    def test_invalid_max_context_characters_configuration_is_rejected(self):
+        service = AnswerGenerationService(
+            provider=Mock(),
+        )
+
+        chunk = Mock()
+        chunk.content = "Document content."
+
+        with self.settings(
+            RAG_GENERATION_MAX_CONTEXT_CHARACTERS=0,
+        ):
+            with self.assertRaises(GenerationError):
+                service.generate(
+                    question="What is this?",
+                    chunks=[chunk],
+                )
+
+    def test_excessive_max_context_characters_configuration_is_rejected(self):
+        service = AnswerGenerationService(
+            provider=Mock(),
+        )
+
+        chunk = Mock()
+        chunk.content = "Document content."
+
+        with self.settings(
+            RAG_GENERATION_MAX_CONTEXT_CHARACTERS=50001,
+        ):
+            with self.assertRaises(GenerationError):
+                service.generate(
+                    question="What is this?",
+                    chunks=[chunk],
+                )

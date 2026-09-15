@@ -2,9 +2,17 @@ from django.conf import settings
 
 
 DEFAULT_MAX_CONTEXT_CHUNKS = 5
+MAX_ALLOWED_CONTEXT_CHUNKS = 20
+
 DEFAULT_MAX_CONTEXT_CHARACTERS = 12000
+MAX_ALLOWED_CONTEXT_CHARACTERS = 50000
 
 DEFAULT_GROQ_MODEL = ""
+
+DEFAULT_GEMINI_MODEL = ""
+
+DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434"
+DEFAULT_OLLAMA_MODEL = "qwen2.5:3b"
 
 
 def get_max_context_chunks():
@@ -38,11 +46,13 @@ def get_groq_model():
         DEFAULT_GROQ_MODEL,
     )
 
-DEFAULT_GEMINI_MODEL = ""
-
 
 def get_gemini_api_key():
-    return getattr(settings, "GEMINI_API_KEY", "")
+    return getattr(
+        settings,
+        "GEMINI_API_KEY",
+        "",
+    )
 
 
 def get_gemini_model():
@@ -51,9 +61,6 @@ def get_gemini_model():
         "GEMINI_MODEL",
         DEFAULT_GEMINI_MODEL,
     )
-
-DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434"
-DEFAULT_OLLAMA_MODEL = "qwen2.5:3b"
 
 
 def get_ollama_base_url():
