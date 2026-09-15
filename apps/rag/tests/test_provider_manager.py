@@ -274,3 +274,158 @@ class LLMProviderManagerTests(SimpleTestCase):
             provider.calls,
             [],
         )
+
+
+    def test_falls_back_after_unexpected_provider_exception(self):
+        primary = TestProvider(
+            error=RuntimeError(
+                "Unexpected provider failure."
+            )
+        )
+        secondary = TestProvider(
+            answer="Secondary answer"
+        )
+
+        manager = LLMProviderManager(
+            providers=[
+                primary,
+                secondary,
+            ]
+        )
+
+        result = manager.generate(
+            "Test prompt."
+        )
+
+        self.assertEqual(
+            result,
+            "Secondary answer",
+        )
+
+        self.assertEqual(
+            primary.calls,
+            ["Test prompt."],
+        )
+
+        self.assertEqual(
+            secondary.calls,
+            ["Test prompt."],
+        )
+
+    def test_falls_back_after_non_string_provider_response(self):
+        primary = TestProvider(
+            answer=123
+        )
+        secondary = TestProvider(
+            answer="Secondary answer"
+        )
+
+        manager = LLMProviderManager(
+            providers=[
+                primary,
+                secondary,
+            ]
+        )
+
+        result = manager.generate(
+            "Test prompt."
+        )
+
+        self.assertEqual(
+            result,
+            "Secondary answer",
+        )
+
+        self.assertEqual(
+            primary.calls,
+            ["Test prompt."],
+        )
+
+        self.assertEqual(
+            secondary.calls,
+            ["Test prompt."],
+        )
+
+    def test_falls_back_after_empty_provider_response(self):
+        primary = TestProvider(
+            answer="   "
+        )
+        secondary = TestProvider(
+            answer="Secondary answer"
+        )
+
+        manager = LLMProviderManager(
+            providers=[
+                primary,
+                secondary,
+            ]
+        )
+
+        result = manager.generate(
+            "Test prompt."
+        )
+
+        self.assertEqual(
+            result,
+            "Secondary answer",
+        )
+
+        self.assertEqual(
+            primary.calls,
+            ["Test prompt."],
+        )
+
+        self.assertEqual(
+            secondary.calls,
+            ["Test prompt."],
+        )
+
+    def test_all_providers_unexpected_failures_raise_safe_error(self):
+        primary = TestProvider(
+            error=RuntimeError(
+                "Groq internal details."
+            )
+        )
+        secondary = TestProvider(
+            error=TimeoutError(
+                "Gemini timeout details."
+            )
+        )
+        fallback = TestProvider(
+            error=ValueError(
+                "Ollama internal details."
+            )
+        )
+
+        manager = LLMProviderManager(
+            providers=[
+                primary,
+                secondary,
+                fallback,
+            ]
+        )
+
+        with self.assertRaises(GenerationError) as context:
+            manager.generate(
+                "Test prompt."
+            )
+
+        self.assertEqual(
+            str(context.exception),
+            "All configured LLM providers failed.",
+        )
+
+        self.assertNotIn(
+            "Groq internal details.",
+            str(context.exception),
+        )
+
+        self.assertNotIn(
+            "Gemini timeout details.",
+            str(context.exception),
+        )
+
+        self.assertNotIn(
+            "Ollama internal details.",
+            str(context.exception),
+        )

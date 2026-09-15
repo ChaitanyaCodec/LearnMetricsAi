@@ -44,8 +44,24 @@ class LLMProviderManager(LLMProvider):
 
         for provider in self.providers:
             try:
-                return provider.generate(prompt)
+                answer = provider.generate(prompt)
+
+                if not isinstance(answer, str):
+                    raise GenerationError(
+                        "Provider returned an invalid answer."
+                    )
+
+                if not answer.strip():
+                    raise GenerationError(
+                        "Provider returned an empty answer."
+                    )
+
+                return answer.strip()
+
             except GenerationError as exc:
+                failures.append(exc)
+
+            except Exception as exc:
                 failures.append(exc)
 
         raise GenerationError(
