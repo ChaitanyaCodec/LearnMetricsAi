@@ -17,10 +17,11 @@ MAX_HISTORY_LIMIT = 50
 
 class ConversationService:
     """
-    Handles conversation and chat-message persistence.
+    Service layer for persistent RAG conversations.
 
-    This service deliberately does not perform embedding, retrieval,
-    or answer generation. Those responsibilities belong to RagService.
+    Conversation ownership and message sequencing are enforced here
+    so callers cannot accidentally access or mutate another user's
+    conversation.
     """
 
     def create_conversation(self, *, user, subject, title=""):
@@ -44,7 +45,10 @@ class ConversationService:
 
         return (
             Conversation.objects
-            .filter(user=user, is_active=True)
+            .filter(
+                user=user,
+                is_active=True,
+            )
             .select_related("subject")
             .order_by("-updated_at")
         )
@@ -65,7 +69,7 @@ class ConversationService:
             )
         except Conversation.DoesNotExist as exc:
             raise ConversationNotFoundError(
-                "Conversation was not found."
+                "Conversation not found."
             ) from exc
 
     def get_conversation_history(
@@ -75,14 +79,6 @@ class ConversationService:
         conversation_id,
         limit=None,
     ):
-        """
-        Return the latest messages from a conversation in
-        chronological order.
-
-        Conversation ownership is enforced through get_conversation().
-        The limit applies to the number of most recent messages.
-        """
-
         self._validate_user(user)
 
         conversation = self.get_conversation(
@@ -152,15 +148,30 @@ class ConversationService:
         self._validate_user(user)
         self._validate_content(content)
 
-        conversation = self.get_conversation(
-            user=user,
-            conversation_id=conversation_id,
-        )
+        metadata = dict(metadata or {})
 
         with transaction.atomic():
+            try:
+                # Lock the parent conversation row so concurrent
+                # message writers for the same conversation are
+                # serialized before calculating the next sequence.
+                conversation = (
+                    Conversation.objects
+                    .select_for_update()
+                    .select_related("subject")
+                    .get(
+                        id=conversation_id,
+                        user=user,
+                        is_active=True,
+                    )
+                )
+            except Conversation.DoesNotExist as exc:
+                raise ConversationNotFoundError(
+                    "Conversation not found."
+                ) from exc
+
             last_message = (
                 ChatMessage.objects
-                .select_for_update()
                 .filter(conversation=conversation)
                 .order_by("-sequence")
                 .first()
@@ -172,20 +183,27 @@ class ConversationService:
                 else 1
             )
 
-            message = ChatMessage.objects.create(
-                conversation=conversation,
-                role=role,
-                content=content.strip(),
-                sequence=next_sequence,
-                metadata=dict(metadata or {}),
-            )
+            try:
+                message = ChatMessage.objects.create(
+                    conversation=conversation,
+                    role=role,
+                    content=content.strip(),
+                    sequence=next_sequence,
+                    metadata=metadata,
+                )
 
-            conversation.save(update_fields=["updated_at"])
+                conversation.save(
+                    update_fields=["updated_at"]
+                )
+
+            except Exception as exc:
+                raise ConversationServiceError(
+                    "Failed to create conversation message."
+                ) from exc
 
         return message
 
-    @staticmethod
-    def _resolve_history_limit(limit):
+    def _resolve_history_limit(self, limit):
         if limit is None:
             limit = getattr(
                 settings,
@@ -195,49 +213,45 @@ class ConversationService:
 
         if isinstance(limit, bool) or not isinstance(limit, int):
             raise ConversationValidationError(
-                "Conversation history limit must be an integer."
+                "History limit must be an integer."
             )
 
         if limit <= 0:
             raise ConversationValidationError(
-                "Conversation history limit must be greater than zero."
+                "History limit must be greater than zero."
             )
 
         if limit > MAX_HISTORY_LIMIT:
             raise ConversationValidationError(
-                f"Conversation history limit cannot exceed "
-                f"{MAX_HISTORY_LIMIT}."
+                f"History limit cannot exceed {MAX_HISTORY_LIMIT}."
             )
 
         return limit
 
-    @staticmethod
-    def _validate_user(user):
-        if (
-            user is None
-            or not getattr(user, "is_authenticated", False)
-            or not getattr(user, "is_active", False)
-        ):
+    def _validate_user(self, user):
+        if not getattr(user, "is_authenticated", False):
             raise ConversationValidationError(
-                "An authenticated active user is required."
+                "Authenticated user is required."
             )
 
-    @staticmethod
-    def _validate_subject(subject):
+        if not getattr(user, "is_active", False):
+            raise ConversationValidationError(
+                "Active user is required."
+            )
+
+    def _validate_subject(self, subject):
         if not isinstance(subject, Subject):
             raise ConversationValidationError(
                 "A valid subject is required."
             )
 
-    @staticmethod
-    def _validate_title(title):
+    def _validate_title(self, title):
         if not isinstance(title, str):
             raise ConversationValidationError(
                 "Conversation title must be a string."
             )
 
-    @staticmethod
-    def _validate_content(content):
+    def _validate_content(self, content):
         if not isinstance(content, str):
             raise ConversationValidationError(
                 "Message content must be a string."
