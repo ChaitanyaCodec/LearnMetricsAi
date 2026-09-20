@@ -1,0 +1,174 @@
+{% extends "base/dashboard_base.html" %}
+{% load static %}
+
+{% block title %}AI Teaching Assistant | LearnMetrics AI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/rag-chat.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="rag-chat-wrapper">
+
+    <!-- TOP NAV / PAGE TITLE -->
+    <header class="rag-chat-topbar">
+        <div class="rag-topbar-left">
+            <button type="button" id="sidebar-toggle" class="btn-icon d-md-none" aria-label="Toggle History">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="rag-brand-badge">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div>
+                <h1 class="rag-page-title">AI Academic Assistant</h1>
+                <span class="rag-page-subtitle">Verified study materials intelligence engine</span>
+            </div>
+        </div>
+        <div class="rag-topbar-right">
+            <button type="button" id="new-chat-button" class="btn btn-primary btn-sm rag-btn-primary">
+                <i class="fa-solid fa-plus me-1"></i> New Session
+            </button>
+        </div>
+    </header>
+
+    <!-- CORE WORKSPACE -->
+    <div class="rag-workspace" id="rag-workspace">
+
+        <!-- CONVERSATIONS SIDEBAR -->
+        <aside class="rag-sidebar" id="rag-sidebar">
+            <div class="rag-sidebar-header">
+                <span class="rag-sidebar-heading">Conversations</span>
+                <button type="button" id="new-chat-sidebar-button" class="btn-icon-subtle" title="New Session">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+            </div>
+
+            <!-- SCROLLABLE CONVERSATION LIST -->
+            <div id="conversation-list" class="rag-conversation-scrollarea">
+                <div id="conversation-empty-state" class="rag-empty-sidebar">
+                    <i class="fa-regular fa-message"></i>
+                    <p>No previous sessions</p>
+                    <small>Start a chat to review topics</small>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN INTERACTION AREA -->
+        <main class="rag-stage">
+
+            <!-- STAGE HEADER WITH INLINE SUBJECT PICKER -->
+            <div class="rag-stage-header">
+                <div class="rag-stage-context">
+                    <div class="rag-status-indicator"></div>
+                    <div class="rag-stage-meta">
+                        <span id="active-conversation-title" class="rag-active-title">New Conversation</span>
+                        <div class="rag-subject-group">
+                            <label for="subject-select" class="rag-subject-label">Subject:</label>
+                            <select id="subject-select" class="rag-subject-select">
+                                <option value="">Choose academic subject...</option>
+                                {% for subject in subjects %}
+                                    <option value="{{ subject.id }}">
+                                        {{ subject.name }}{% if subject.code %} ({{ subject.code }}){% endif %}
+                                    </option>
+                                {% empty %}
+                                    <option value="" disabled>No subjects assigned</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHAT MESSAGES (FIXED SCROLL CONTAINER) -->
+            <div id="chat-messages" class="rag-message-feed">
+                <!-- EMPTY STATE -->
+                <div id="chat-empty-state" class="rag-feed-placeholder">
+                    <div class="rag-placeholder-icon">
+                        <i class="fa-solid fa-book-bookmark"></i>
+                    </div>
+                    <h2>How can I assist your study session?</h2>
+                    <p>Select your subject and ask any specific inquiry against your syllabus.</p>
+
+                    <div class="rag-prompt-suggestions">
+                        <button type="button" class="rag-prompt-pill" data-prompt="Summarize key formulas and definitions from this subject.">
+                            <i class="fa-regular fa-lightbulb"></i> Summarize formulas & definitions
+                        </button>
+                        <button type="button" class="rag-prompt-pill" data-prompt="What are the recurring questions or critical topics in this course?">
+                            <i class="fa-solid fa-list-check"></i> High-frequency exam topics
+                        </button>
+                        <button type="button" class="rag-prompt-pill" data-prompt="Explain the most complex concept from the recent modules.">
+                            <i class="fa-solid fa-graduation-cap"></i> Clarify difficult concepts
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- THINKING INDICATOR -->
+            <div id="chat-loading" class="rag-loading-shelf d-none">
+                <div class="rag-thinking-card">
+                    <i class="fa-solid fa-circle-notch fa-spin text-primary"></i>
+                    <span>Reviewing verified materials...</span>
+                </div>
+            </div>
+
+            <!-- ERROR ALERT -->
+            <div id="chat-error" class="rag-banner-error d-none" role="alert">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div id="chat-error-message" class="rag-error-text"></div>
+            </div>
+
+            <!-- COMPOSER AREA -->
+            <div class="rag-composer-tray">
+                <div class="rag-composer-box">
+                    <textarea
+                        id="chat-input"
+                        class="rag-textarea"
+                        rows="1"
+                        maxlength="5000"
+                        placeholder="Type your academic inquiry here... (Enter to send, Shift+Enter for new line)"
+                        aria-label="Ask your question"></textarea>
+
+                    <button type="button" id="send-message-button" class="rag-send-btn" disabled aria-label="Send inquiry">
+                        <i class="fa-solid fa-arrow-up"></i>
+                    </button>
+                </div>
+
+                <div class="rag-composer-footer">
+                    <span><i class="fa-solid fa-shield-check me-1"></i> Responses grounded strictly in syllabus docs</span>
+                    <span id="character-count">0 / 5000</span>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="modal fade" id="deleteChatModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content rag-modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold" id="deleteModalLabel">Delete Thread?</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-muted small py-2">
+                This action cannot be reversed. This entire conversation will be permanently removed.
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirm-delete-btn" class="btn btn-sm btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<!-- Markdown Parser & HTML Sanitizer -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
+<!-- Your Custom Chat Script -->
+<script src="{% static 'js/rag-chat.js' %}"></script>
+{% endblock %}

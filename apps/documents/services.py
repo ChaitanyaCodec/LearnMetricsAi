@@ -1,9 +1,12 @@
 import hashlib
+import logging
 from pathlib import Path
 
 from django.db import transaction
 from django.db.models import Max
 from django.utils import timezone
+
+from apps.rag.indexing import index_document_version
 
 from .models import Document, DocumentVersion
 from .permissions import (
@@ -12,6 +15,9 @@ from .permissions import (
     teacher_can_upload_for_subject,
 )
 from .validators import validate_document_file
+
+
+logger = logging.getLogger(__name__)
 
 
 class DocumentServiceError(Exception):
@@ -134,6 +140,8 @@ def upload_new_document_version(
         uploaded_by=user,
         **_get_file_metadata(source_file),
     )
+
+
 @transaction.atomic
 def submit_latest_version_for_review(*, user, document_id):
     document = (
@@ -267,6 +275,20 @@ def approve_document_version(*, user, document_version_id):
             "updated_at",
         ]
     )
+
+    def index_approved_version():
+        try:
+            index_document_version(
+                document_version_id=version.id,
+            )
+        except Exception:
+            logger.exception(
+                "RAG indexing failed for approved "
+                "document version %s.",
+                version.id,
+            )
+
+    transaction.on_commit(index_approved_version)
 
     return version
 

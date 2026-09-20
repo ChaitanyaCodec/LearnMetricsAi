@@ -1,0 +1,641 @@
+/* ==========================================================================
+   LearnMetrics AI - Enterprise Academic Assistant
+   ========================================================================== */
+
+:root {
+    --lm-primary: #1e40af;
+    --lm-primary-hover: #1d4ed8;
+    --lm-primary-soft: #eff6ff;
+    --lm-primary-border: #bfdbfe;
+    
+    --lm-bg-body: #f8fafc;
+    --lm-bg-card: #ffffff;
+    --lm-bg-subtle: #f1f5f9;
+    
+    --lm-text-heading: #0f172a;
+    --lm-text-body: #334155;
+    --lm-text-muted: #64748b;
+    
+    --lm-border: #e2e8f0;
+    --lm-border-hover: #cbd5e1;
+    --lm-radius-lg: 12px;
+    --lm-radius-md: 8px;
+    
+    --lm-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --lm-shadow-panel: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Page Frame */
+.rag-chat-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 120px);
+    min-height: 580px;
+    width: 100%;
+}
+
+/* Header */
+.rag-chat-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.85rem;
+    padding: 0 0.25rem;
+    flex-shrink: 0;
+}
+
+.rag-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.rag-brand-badge {
+    width: 36px;
+    height: 36px;
+    background: var(--lm-primary);
+    color: #ffffff;
+    border-radius: var(--lm-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.rag-page-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--lm-text-heading);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.rag-page-subtitle {
+    font-size: 0.78rem;
+    color: var(--lm-text-muted);
+}
+
+.rag-btn-primary {
+    background-color: var(--lm-primary);
+    border-color: var(--lm-primary);
+    font-weight: 600;
+    border-radius: var(--lm-radius-md);
+    padding: 0.45rem 0.85rem;
+    font-size: 0.82rem;
+}
+
+.rag-btn-primary:hover {
+    background-color: var(--lm-primary-hover);
+}
+
+/* Core Workspace */
+.rag-workspace {
+    flex: 1;
+    display: flex;
+    min-height: 0; /* CRUCIAL: Allows children with overflow-y to actually scroll */
+    background: var(--lm-bg-card);
+    border: 1px solid var(--lm-border);
+    border-radius: var(--lm-radius-lg);
+    box-shadow: var(--lm-shadow-panel);
+    overflow: hidden;
+    position: relative;
+}
+
+/* --------------------------------------------------------------------------
+   Sidebar (History & Deletion)
+   -------------------------------------------------------------------------- */
+.rag-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: #fcfdfe;
+    border-right: 1px solid var(--lm-border);
+}
+
+.rag-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--lm-border);
+    flex-shrink: 0;
+}
+
+.rag-sidebar-heading {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--lm-text-muted);
+}
+
+.btn-icon-subtle {
+    border: none;
+    background: transparent;
+    color: var(--lm-text-muted);
+    font-size: 0.9rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-icon-subtle:hover {
+    background: var(--lm-bg-subtle);
+    color: var(--lm-text-heading);
+}
+
+.rag-conversation-scrollarea {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto; /* Independent History Scroll */
+    padding: 0.5rem;
+}
+
+.rag-conversation-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 0.75rem;
+    margin-bottom: 0.25rem;
+    border-radius: var(--lm-radius-md);
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    transition: background-color 0.15s ease;
+}
+
+.rag-conversation-item:hover {
+    background: #f1f5f9;
+}
+
+.rag-conversation-item.active {
+    background: var(--lm-primary-soft);
+    border-color: var(--lm-primary-border);
+}
+
+.rag-conv-details {
+    overflow: hidden;
+    flex: 1;
+    min-width: 0;
+}
+
+.rag-conv-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--lm-text-heading);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rag-conv-sub {
+    font-size: 0.7rem;
+    color: var(--lm-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+}
+
+.rag-delete-btn {
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    padding: 4px 6px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    display: none;
+    cursor: pointer;
+    transition: color 0.15s, background-color 0.15s;
+}
+
+.rag-conversation-item:hover .rag-delete-btn {
+    display: inline-block;
+}
+
+.rag-delete-btn:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.rag-empty-sidebar {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--lm-text-muted);
+}
+
+.rag-empty-sidebar i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+}
+
+.rag-empty-sidebar p {
+    font-size: 0.82rem;
+    margin-bottom: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Main Stage & Messaging (Fixed Scroll)
+   -------------------------------------------------------------------------- */
+.rag-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0; /* CRUCIAL FOR SCROLLING */
+    background: var(--lm-bg-card);
+}
+
+.rag-stage-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--lm-border);
+    background: #ffffff;
+    flex-shrink: 0;
+}
+
+.rag-stage-context {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.rag-status-indicator {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+}
+
+.rag-active-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--lm-text-heading);
+    margin-right: 0.75rem;
+}
+
+.rag-subject-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+}
+
+.rag-subject-label {
+    color: var(--lm-text-muted);
+    font-weight: 500;
+    margin: 0;
+}
+
+.rag-subject-select {
+    border: 1px solid var(--lm-border);
+    border-radius: var(--lm-radius-md);
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    color: var(--lm-text-heading);
+    background: var(--lm-bg-subtle);
+    cursor: pointer;
+    max-width: 320px;
+    outline: none;
+}
+
+.rag-subject-select:focus {
+    border-color: var(--lm-primary);
+}
+
+/* Messages Feed Container */
+.rag-message-feed {
+    flex: 1;
+    min-height: 0; /* Ensures container will not push beyond boundary */
+    overflow-y: auto; /* ENABLES CHAT SCROLLING */
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    scroll-behavior: smooth;
+}
+
+/* Individual Message Layouts */
+.rag-msg-row {
+    display: flex;
+    gap: 0.75rem;
+    max-width: 85%;
+}
+
+.rag-msg-row.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.rag-msg-row.assistant {
+    align-self: flex-start;
+}
+
+.rag-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.rag-msg-row.user .rag-avatar {
+    background: var(--lm-primary);
+    color: #ffffff;
+}
+
+.rag-msg-row.assistant .rag-avatar {
+    background: var(--lm-primary-soft);
+    color: var(--lm-primary);
+    border: 1px solid var(--lm-primary-border);
+}
+
+.rag-bubble {
+    padding: 0.75rem 1rem;
+    border-radius: var(--lm-radius-md);
+    font-size: 0.88rem;
+    line-height: 1.55;
+    word-break: break-word;
+}
+
+.rag-msg-row.user .rag-bubble {
+    background: var(--lm-primary);
+    color: #ffffff;
+    border-bottom-right-radius: 2px;
+}
+
+.rag-msg-row.assistant .rag-bubble {
+    background: var(--lm-bg-subtle);
+    border: 1px solid var(--lm-border);
+    color: var(--lm-text-body);
+    border-bottom-left-radius: 2px;
+}
+
+/* Citations & Sources Shelf */
+.rag-citations-box {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.rag-citation-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #ffffff;
+    border: 1px solid var(--lm-border);
+    color: var(--lm-text-muted);
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.68rem;
+    font-weight: 500;
+}
+
+.rag-citation-pill i {
+    color: var(--lm-primary);
+}
+
+/* Empty State */
+.rag-feed-placeholder {
+    margin: auto;
+    text-align: center;
+    max-width: 520px;
+    padding: 2rem 0;
+}
+
+.rag-placeholder-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--lm-primary-soft);
+    color: var(--lm-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin: 0 auto 1rem;
+}
+
+.rag-feed-placeholder h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--lm-text-heading);
+    margin-bottom: 0.35rem;
+}
+
+.rag-feed-placeholder p {
+    font-size: 0.82rem;
+    color: var(--lm-text-muted);
+    margin-bottom: 1.25rem;
+}
+
+.rag-prompt-suggestions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.rag-prompt-pill {
+    background: #ffffff;
+    border: 1px solid var(--lm-border);
+    border-radius: var(--lm-radius-md);
+    padding: 0.55rem 0.85rem;
+    text-align: left;
+    font-size: 0.8rem;
+    color: var(--lm-text-body);
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.rag-prompt-pill:hover {
+    background: var(--lm-primary-soft);
+    border-color: var(--lm-primary-border);
+    color: var(--lm-primary);
+}
+
+/* Thinking Indicator */
+.rag-loading-shelf {
+    padding: 0 1.5rem 0.5rem;
+}
+
+.rag-thinking-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--lm-bg-subtle);
+    border: 1px solid var(--lm-border);
+    padding: 0.4rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: var(--lm-text-muted);
+}
+
+.rag-banner-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    padding: 0.5rem 1rem;
+    margin: 0 1.25rem 0.5rem;
+    border-radius: var(--lm-radius-md);
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   Composer
+   -------------------------------------------------------------------------- */
+.rag-composer-tray {
+    padding: 0.85rem 1.25rem;
+    background: #ffffff;
+    border-top: 1px solid var(--lm-border);
+    flex-shrink: 0;
+}
+
+.rag-composer-box {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    background: #ffffff;
+    border: 1px solid var(--lm-border);
+    border-radius: var(--lm-radius-md);
+    padding: 0.45rem 0.65rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.rag-composer-box:focus-within {
+    border-color: var(--lm-primary);
+    box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+}
+
+.rag-textarea {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    resize: none;
+    font-size: 0.85rem;
+    color: var(--lm-text-heading);
+    max-height: 160px;
+    min-height: 24px;
+    line-height: 1.5;
+    padding: 0.2rem 0;
+}
+
+.rag-send-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--lm-radius-md);
+    border: none;
+    background: var(--lm-primary);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background-color 0.15s;
+    flex-shrink: 0;
+}
+
+.rag-send-btn:disabled {
+    background: var(--lm-bg-subtle);
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.rag-send-btn:not(:disabled):hover {
+    background: var(--lm-primary-hover);
+}
+
+.rag-composer-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--lm-text-muted);
+    margin-top: 0.35rem;
+}
+
+/* Custom Thin Scrollbars */
+.rag-conversation-scrollarea::-webkit-scrollbar,
+.rag-message-feed::-webkit-scrollbar {
+    width: 6px;
+}
+
+.rag-conversation-scrollarea::-webkit-scrollbar-thumb,
+.rag-message-feed::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+}
+
+/* Responsive Rules */
+@media (max-width: 768px) {
+    .rag-sidebar {
+        position: absolute;
+        inset: 0;
+        z-index: 50;
+        width: 100%;
+        display: none;
+    }
+    .rag-sidebar.open {
+        display: flex;
+    }
+    .rag-msg-row {
+        max-width: 95%;
+    }
+}
+
+
+
+/* Formatting for Markdown output inside bubbles */
+.rag-bubble p {
+    margin-bottom: 0.65rem;
+}
+
+.rag-bubble p:last-child {
+    margin-bottom: 0;
+}
+
+.rag-bubble ul, 
+.rag-bubble ol {
+    margin: 0.5rem 0 0.75rem 1.25rem;
+    padding: 0;
+}
+
+.rag-bubble li {
+    margin-bottom: 0.35rem;
+    line-height: 1.5;
+}
+
+.rag-bubble strong {
+    font-weight: 600;
+    color: var(--lm-text-heading);
+}
+
+.rag-bubble code {
+    background: #e2e8f0;
+    padding: 0.15rem 0.35rem;
+    border-radius: 4px;
+    font-size: 0.82em;
+}
+
+.rag-bubble pre {
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 0.75rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 0.5rem 0;
+}
