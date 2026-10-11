@@ -9,6 +9,47 @@ class ChunkData:
     content: str
     character_start: int
     character_end: int
+    page_number: int | None = None
+
+
+def _get_page_number(
+    character_start,
+    character_end,
+    page_ranges,
+):
+    """
+    Determine the page containing the majority of the chunk.
+
+    page_ranges contains tuples of:
+
+        (start_character, end_character, page_number)
+    """
+    if not page_ranges:
+        return None
+
+    best_page = None
+    best_overlap = 0
+
+    for page_start, page_end, page_number in page_ranges:
+        overlap_start = max(
+            character_start,
+            page_start,
+        )
+        overlap_end = min(
+            character_end,
+            page_end,
+        )
+
+        overlap = max(
+            0,
+            overlap_end - overlap_start,
+        )
+
+        if overlap > best_overlap:
+            best_overlap = overlap
+            best_page = page_number
+
+    return best_page
 
 
 def chunk_text(
@@ -16,11 +57,15 @@ def chunk_text(
     *,
     chunk_size=None,
     chunk_overlap=None,
+    page_ranges=None,
 ):
     """
     Split extracted text into overlapping, readable chunks.
 
     Prefers paragraph or word boundaries near the chunk limit.
+
+    When page_ranges are provided, each chunk is assigned the
+    page number containing the largest portion of that chunk.
     """
     chunk_size = (
         chunk_size
@@ -77,7 +122,10 @@ def chunk_text(
                 maximum_end,
             )
 
-            end = max(paragraph_end, word_end)
+            end = max(
+                paragraph_end,
+                word_end,
+            )
 
             if end <= start:
                 end = maximum_end
@@ -85,14 +133,22 @@ def chunk_text(
         content = text[start:end].strip()
 
         if content:
+            page_number = _get_page_number(
+                start,
+                end,
+                page_ranges,
+            )
+
             chunks.append(
                 ChunkData(
                     chunk_index=chunk_index,
                     content=content,
                     character_start=start,
                     character_end=end,
+                    page_number=page_number,
                 )
             )
+
             chunk_index += 1
 
         if end >= text_length:

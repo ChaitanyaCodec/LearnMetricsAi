@@ -3,8 +3,14 @@ from unittest.mock import Mock
 
 from django.test import SimpleTestCase
 
+from apps.rag.reframing.constants import (
+    ReframerIntent,
+    ReframerOutputFormat,
+)
+from apps.rag.reframing.models import PromptReframerResult
 from apps.rag.services import (
     RagAnswer,
+    RagNoRelevantContextError,
     RagService,
     RagServiceError,
 )
@@ -15,11 +21,27 @@ class RagServiceTests(SimpleTestCase):
         self.embedding_service = Mock()
         self.retrieval_service = Mock()
         self.generation_service = Mock()
+        self.reframer = Mock()
+
+        self.reframing_result = PromptReframerResult(
+            original_question="test question",
+            intent=ReframerIntent.GENERAL_QA,
+            topic=None,
+            output_format=ReframerOutputFormat.DEFAULT,
+            constraints=(),
+            clarification_needed=False,
+            confidence=0.90,
+        )
+
+        self.reframer.reframe.return_value = (
+            self.reframing_result
+        )
 
         self.service = RagService(
             embedding_service=self.embedding_service,
             retrieval_service=self.retrieval_service,
             generation_service=self.generation_service,
+            reframer=self.reframer,
         )
 
     def test_question_must_be_string(self):
@@ -61,8 +83,11 @@ class RagServiceTests(SimpleTestCase):
 
     def test_retrieval_pipeline(self):
         embedding = [0.1, 0.2]
+
         chunks = [
-            SimpleNamespace(content="Normalization content")
+            SimpleNamespace(
+                content="Normalization content"
+            )
         ]
 
         self.embedding_service.embed_text.return_value = embedding
@@ -74,7 +99,10 @@ class RagServiceTests(SimpleTestCase):
             subject="subject",
         )
 
-        self.assertEqual(result, chunks)
+        self.assertEqual(
+            result,
+            chunks,
+        )
 
         self.embedding_service.embed_text.assert_called_once_with(
             "What is normalization?"
@@ -104,14 +132,18 @@ class RagServiceTests(SimpleTestCase):
 
     def test_answer_question_returns_answer(self):
         chunks = [
-            SimpleNamespace(content="Normalization content")
+            SimpleNamespace(
+                content="Normalization content"
+            )
         ]
 
         self.embedding_service.embed_text.return_value = [
             0.1,
             0.2,
         ]
+
         self.retrieval_service.retrieve.return_value = chunks
+
         self.generation_service.generate.return_value = (
             "Normalization is the organization of data."
         )
@@ -130,18 +162,23 @@ class RagServiceTests(SimpleTestCase):
         self.generation_service.generate.assert_called_once_with(
             question="What is normalization?",
             chunks=tuple(chunks),
+            reframing_result=self.reframing_result,
         )
 
     def test_generation_failure_is_wrapped(self):
         chunks = [
-            SimpleNamespace(content="Normalization content")
+            SimpleNamespace(
+                content="Normalization content"
+            )
         ]
 
         self.embedding_service.embed_text.return_value = [
             0.1,
             0.2,
         ]
+
         self.retrieval_service.retrieve.return_value = chunks
+
         self.generation_service.generate.side_effect = Exception(
             "Generation failed"
         )
@@ -153,14 +190,18 @@ class RagServiceTests(SimpleTestCase):
 
     def test_subject_is_forwarded_through_answer_pipeline(self):
         chunks = [
-            SimpleNamespace(content="Normalization content")
+            SimpleNamespace(
+                content="Normalization content"
+            )
         ]
 
         self.embedding_service.embed_text.return_value = [
             0.1,
             0.2,
         ]
+
         self.retrieval_service.retrieve.return_value = chunks
+
         self.generation_service.generate.return_value = "Answer"
 
         self.service.answer_question(
@@ -186,9 +227,11 @@ class RagServiceTests(SimpleTestCase):
             0.1,
             0.2,
         ]
+
         self.retrieval_service.retrieve.return_value = [
             chunk
         ]
+
         self.generation_service.generate.return_value = (
             "Normalization is the organization of data."
         )
@@ -199,7 +242,10 @@ class RagServiceTests(SimpleTestCase):
             top_k=5,
         )
 
-        self.assertIsInstance(result, RagAnswer)
+        self.assertIsInstance(
+            result,
+            RagAnswer,
+        )
 
         self.assertEqual(
             result.answer,
@@ -214,6 +260,7 @@ class RagServiceTests(SimpleTestCase):
         self.generation_service.generate.assert_called_once_with(
             question="What is normalization?",
             chunks=(chunk,),
+            reframing_result=self.reframing_result,
         )
 
     def test_answer_question_with_sources_preserves_retrieved_chunks(
@@ -222,6 +269,7 @@ class RagServiceTests(SimpleTestCase):
         first_chunk = SimpleNamespace(
             content="First source"
         )
+
         second_chunk = SimpleNamespace(
             content="Second source"
         )
@@ -235,9 +283,11 @@ class RagServiceTests(SimpleTestCase):
             0.1,
             0.2,
         ]
+
         self.retrieval_service.retrieve.return_value = (
             retrieved_chunks
         )
+
         self.generation_service.generate.return_value = "Answer"
 
         result = self.service.answer_question_with_sources(
@@ -258,13 +308,47 @@ class RagServiceTests(SimpleTestCase):
                 first_chunk,
                 second_chunk,
             ),
+            reframing_result=self.reframing_result,
         )
 
+    def test_no_relevant_context_raises_specific_error(self):
+        self.embedding_service.embed_text.return_value = [
+            0.1,
+            0.2,
+        ]
+
+        self.retrieval_service.retrieve.return_value = []
+
+        with self.assertRaises(
+            RagNoRelevantContextError
+        ):
+            self.service.answer_question_with_sources(
+                question="What is an unrelated topic?"
+            )
+
+        self.generation_service.generate.assert_not_called()
 
     def test_conversation_history_is_forwarded_to_generation(self):
         embedding_service = Mock()
         retrieval_service = Mock()
         generation_service = Mock()
+        reframer = Mock()
+
+        reframing_result = PromptReframerResult(
+            original_question=(
+                "What key sizes does it support?"
+            ),
+            intent=ReframerIntent.GENERAL_QA,
+            topic=None,
+            output_format=ReframerOutputFormat.DEFAULT,
+            constraints=(),
+            clarification_needed=False,
+            confidence=0.90,
+        )
+
+        reframer.reframe.return_value = (
+            reframing_result
+        )
 
         embedding_service.embed_text.return_value = [
             0.1,
@@ -273,7 +357,10 @@ class RagServiceTests(SimpleTestCase):
         ]
 
         chunk = Mock()
-        retrieval_service.retrieve.return_value = [chunk]
+
+        retrieval_service.retrieve.return_value = [
+            chunk
+        ]
 
         generation_service.generate.return_value = (
             "AES supports 128, 192, and 256-bit keys."
@@ -283,6 +370,7 @@ class RagServiceTests(SimpleTestCase):
             embedding_service=embedding_service,
             retrieval_service=retrieval_service,
             generation_service=generation_service,
+            reframer=reframer,
         )
 
         history = [
@@ -300,7 +388,6 @@ class RagServiceTests(SimpleTestCase):
 
         result = service.answer_question_with_sources(
             question="What key sizes does it support?",
-            subject=None,
             conversation_history=history,
         )
 
@@ -312,5 +399,62 @@ class RagServiceTests(SimpleTestCase):
         generation_service.generate.assert_called_once_with(
             question="What key sizes does it support?",
             chunks=(chunk,),
+            reframing_result=reframing_result,
             conversation_history=history,
+        )
+
+    def test_reframing_result_is_forwarded_to_generation(self):
+        question = (
+            "Give me 10 important questions on Apriori."
+        )
+
+        chunks = [
+            SimpleNamespace(
+                content=(
+                    "Apriori is an association rule "
+                    "mining algorithm."
+                )
+            )
+        ]
+
+        self.retrieval_service.retrieve.return_value = chunks
+
+        self.generation_service.generate.return_value = (
+            "Answer"
+        )
+
+        result = self.service.answer_question_with_sources(
+            question=question,
+        )
+
+        self.assertEqual(
+            result.answer,
+            "Answer",
+        )
+
+        kwargs = (
+            self.generation_service
+            .generate
+            .call_args
+            .kwargs
+        )
+
+        self.assertIn(
+            "reframing_result",
+            kwargs,
+        )
+
+        self.assertIs(
+            kwargs["reframing_result"],
+            self.reframing_result,
+        )
+
+        self.assertEqual(
+            kwargs["question"],
+            question,
+        )
+
+        self.assertEqual(
+            kwargs["chunks"],
+            tuple(chunks),
         )

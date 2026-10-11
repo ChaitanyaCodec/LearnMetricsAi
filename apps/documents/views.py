@@ -18,14 +18,14 @@ from .selectors import (
 
 from .forms import DocumentForm
 from .models import (
-                     
+
     Document,
     DocumentVersion,
 )
 from .permissions import (
     can_manage_document,
     is_documents_admin,
-    
+
 )
 from .processing import process_document_version
 from .selectors import (
@@ -802,3 +802,64 @@ class DocumentRetireView(
             )
 
         return redirect("documents:detail", document_id=document_id)
+
+
+class DocumentVersionPreviewView(LoginRequiredMixin, View):
+    """
+    Inline preview for browser-renderable file types only.
+    Authorization mirrors the existing version download endpoint.
+    """
+
+    INLINE_CONTENT_TYPES = {
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "text/plain",
+    }
+
+    def get(self, request, document_id, version_id):
+        import mimetypes
+        from django.http import HttpResponse
+
+        document = get_authorized_document(
+            user=request.user,
+            document_id=document_id,
+        )
+        if document is None:
+            raise Http404("Document not found.")
+
+        version = document.versions.filter(pk=version_id).first()
+        if version is None:
+            raise Http404("Document version not found.")
+
+        may_preview_any_version = (
+            is_documents_admin(request.user)
+            or can_manage_document(request.user, document)
+        )
+        if (
+            not may_preview_any_version
+            and version.id != document.published_version_id
+        ):
+            raise Http404("Document version not found.")
+
+        content_type, _ = mimetypes.guess_type(version.original_filename)
+        if content_type not in self.INLINE_CONTENT_TYPES:
+            return HttpResponse(
+                "Preview is not available for this file type in the browser. "
+                "Download the file to open it with a compatible application.",
+                status=415,
+                content_type="text/plain; charset=utf-8",
+            )
+
+        safe_filename = version.original_filename.replace('"', "")
+        response = FileResponse(
+            version.source_file.open("rb"),
+            as_attachment=False,
+            filename=safe_filename,
+            content_type=content_type,
+        )
+        response["X-Content-Type-Options"] = "nosniff"
+        response["Content-Disposition"] = f'inline; filename="{safe_filename}"'
+        return response

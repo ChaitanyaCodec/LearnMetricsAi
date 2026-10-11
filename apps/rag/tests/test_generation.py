@@ -464,3 +464,163 @@ class AnswerGenerationServiceTests(SimpleTestCase):
                     question="What is this?",
                     chunks=[chunk],
                 )
+
+
+        def test_reframing_metadata_is_included_in_prompt(self):
+            provider = Mock()
+            provider.generate.return_value = "Answer."
+
+            service = AnswerGenerationService(
+                provider=provider,
+            )
+
+            chunk = Mock()
+            chunk.content = "Apriori is an association rule mining algorithm."
+
+            reframing_result = Mock()
+            reframing_result.intent = "PRACTICE_QUESTIONS"
+            reframing_result.topic = "Apriori"
+            reframing_result.output_format = "PRACTICE_SET"
+            reframing_result.constraints = (
+                "10 questions",
+            )
+
+            service.generate(
+                question="Give me 10 important questions on Apriori.",
+                chunks=[chunk],
+                reframing_result=reframing_result,
+            )
+
+            prompt = provider.generate.call_args.args[0]
+
+            self.assertIn(
+                "Intent: PRACTICE_QUESTIONS",
+                prompt,
+            )
+
+            self.assertIn(
+                "Topic: Apriori",
+                prompt,
+            )
+
+            self.assertIn(
+                "Output format: PRACTICE_SET",
+                prompt,
+            )
+
+            self.assertIn(
+                "- 10 questions",
+                prompt,
+            )
+
+            self.assertIn(
+                "Give me 10 important questions on Apriori.",
+                prompt,
+            )
+
+        def test_reframing_constraints_are_included_in_prompt(self):
+            provider = Mock()
+            provider.generate.return_value = "Answer."
+
+            service = AnswerGenerationService(
+                provider=provider,
+            )
+
+            chunk = Mock()
+            chunk.content = "Database normalization content."
+
+            reframing_result = Mock()
+            reframing_result.intent = "EXPLANATION"
+            reframing_result.topic = "Normalization"
+            reframing_result.output_format = "EXPLANATION"
+            reframing_result.constraints = (
+                "detailed explanation",
+                "beginner level",
+            )
+
+            service.generate(
+                question="Explain normalization in detail.",
+                chunks=[chunk],
+                reframing_result=reframing_result,
+            )
+
+            prompt = provider.generate.call_args.args[0]
+
+            self.assertIn(
+                "- detailed explanation",
+                prompt,
+            )
+
+            self.assertIn(
+                "- beginner level",
+                prompt,
+            )
+
+        def test_generation_works_without_reframing(self):
+            provider = Mock()
+            provider.generate.return_value = "Answer."
+
+            service = AnswerGenerationService(
+                provider=provider,
+            )
+
+            chunk = Mock()
+            chunk.content = "Document content."
+
+            service.generate(
+                question="What is this?",
+                chunks=[chunk],
+            )
+
+            prompt = provider.generate.call_args.args[0]
+
+            self.assertIn(
+                "No prompt-reframing metadata available.",
+                prompt,
+            )
+
+            self.assertIn(
+                "What is this?",
+                prompt,
+            )
+
+        def test_reframing_metadata_does_not_replace_original_question(self):
+            provider = Mock()
+            provider.generate.return_value = "Answer."
+
+            service = AnswerGenerationService(
+                provider=provider,
+            )
+
+            chunk = Mock()
+            chunk.content = "Apriori content."
+
+            reframing_result = Mock()
+            reframing_result.intent = "PRACTICE_QUESTIONS"
+            reframing_result.topic = "Apriori"
+            reframing_result.output_format = "PRACTICE_SET"
+            reframing_result.constraints = (
+                "10 questions",
+            )
+
+            original_question = (
+                "Give me 10 important questions on Apriori."
+            )
+
+            service.generate(
+                question=original_question,
+                chunks=[chunk],
+                reframing_result=reframing_result,
+            )
+
+            prompt = provider.generate.call_args.args[0]
+
+            self.assertIn(
+                f"CURRENT QUESTION:\n{original_question}",
+                prompt,
+            )
+
+            self.assertNotIn(
+                "CURRENT QUESTION:\nApriori",
+                prompt,
+            )

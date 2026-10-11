@@ -13,9 +13,24 @@ class DocumentExtractionError(Exception):
 
 
 @dataclass(frozen=True)
+class ExtractedPage:
+    """
+    Text extracted from one logical page/slide.
+
+    page_number is one-based.
+    For PDFs this represents the PDF page number.
+    For PPTX files this represents the slide number.
+    """
+
+    page_number: int
+    text: str
+
+
+@dataclass(frozen=True)
 class ExtractionResult:
     text: str
     page_count: int | None = None
+    pages: tuple[ExtractedPage, ...] = ()
 
 
 def _ensure_text(text):
@@ -29,6 +44,30 @@ def _ensure_text(text):
     return cleaned_text
 
 
+def _build_page_aware_text(pages):
+    """
+    Join page/slide text while preserving the exact character
+    positions needed later for chunk-to-page mapping.
+    """
+    non_empty_pages = [
+        page
+        for page in pages
+        if page.text.strip()
+    ]
+
+    if not non_empty_pages:
+        raise DocumentExtractionError(
+            "No readable text could be extracted from this file."
+        )
+
+    return _ensure_text(
+        "\n\n".join(
+            page.text.strip()
+            for page in non_empty_pages
+        )
+    )
+
+
 def _extract_pdf(file_object):
     reader = PdfReader(file_object)
 
@@ -37,14 +76,18 @@ def _extract_pdf(file_object):
             "Password-protected PDF files are not supported."
         )
 
-    page_texts = []
-
-    for page in reader.pages:
-        page_texts.append(page.extract_text() or "")
+    pages = tuple(
+        ExtractedPage(
+            page_number=index + 1,
+            text=page.extract_text() or "",
+        )
+        for index, page in enumerate(reader.pages)
+    )
 
     return ExtractionResult(
-        text=_ensure_text("\n\n".join(page_texts)),
+        text=_build_page_aware_text(pages),
         page_count=len(reader.pages),
+        pages=pages,
     )
 
 
@@ -75,9 +118,13 @@ def _extract_docx(file_object):
 
 def _extract_pptx(file_object):
     presentation = Presentation(file_object)
-    slide_texts = []
 
-    for slide in presentation.slides:
+    pages = []
+
+    for slide_number, slide in enumerate(
+        presentation.slides,
+        start=1,
+    ):
         parts = []
 
         for shape in slide.shapes:
@@ -87,12 +134,21 @@ def _extract_pptx(file_object):
             ):
                 parts.append(shape.text.strip())
 
-        if parts:
-            slide_texts.append("\n".join(parts))
+        slide_text = "\n".join(parts)
+
+        pages.append(
+            ExtractedPage(
+                page_number=slide_number,
+                text=slide_text,
+            )
+        )
+
+    pages = tuple(pages)
 
     return ExtractionResult(
-        text=_ensure_text("\n\n".join(slide_texts)),
+        text=_build_page_aware_text(pages),
         page_count=len(presentation.slides),
+        pages=pages,
     )
 
 
@@ -111,8 +167,11 @@ def _extract_txt(file_object):
 
 def extract_document_version(document_version: DocumentVersion):
     """
-    Extract text only. Database processing status is managed later
-    by the processing service.
+    Extract document text and preserve page/slide information
+    when the source format provides it.
+
+    Database processing status is managed later by the
+    processing service.
     """
     extension = Path(
         document_version.original_filename

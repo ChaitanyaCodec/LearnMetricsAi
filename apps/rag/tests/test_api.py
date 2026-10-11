@@ -9,6 +9,8 @@ from apps.rag.retrieval.config import MAX_TOP_K
 from apps.rag.services import RagAnswer, RagServiceError
 from apps.rag.views import RagAskAPIView
 
+from apps.rag.services import RagClarificationRequiredError
+from unittest.mock import patch
 
 class RagAskAPIViewTests(SimpleTestCase):
     """
@@ -491,3 +493,63 @@ class RagAskAPIViewTests(SimpleTestCase):
             role = User.Roles.STUDENT
 
         return TestUser()
+
+
+    @patch("apps.rag.views.Subject.objects.get")
+    @patch(
+        "apps.rag.views.is_documents_admin",
+        return_value=True,
+    )
+    @patch("apps.rag.views.RagService")
+    def test_clarification_status_is_returned(
+        self,
+        mock_rag_service,
+        mock_admin,
+        mock_subject_get,
+    ):
+        user = self._make_user()
+
+        subject = object()
+        mock_subject_get.return_value = subject
+
+        mock_service = mock_rag_service.return_value
+
+        mock_service.answer_question_with_sources.side_effect = (
+            RagClarificationRequiredError(
+                "The question needs clarification."
+            )
+        )
+
+        response = self.make_request(
+            {
+                "question": "important ones",
+                "subject_id": 1,
+            },
+            user,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.content)
+
+        self.assertEqual(
+            data["status"],
+            "CLARIFICATION",
+        )
+
+        self.assertIn(
+            "guidance",
+            data,
+        )
+
+        self.assertEqual(
+            data["guidance"]["reason"],
+            "CLARIFICATION",
+        )
+
+        mock_service.answer_question_with_sources.assert_called_once_with(
+            user=user,
+            question="important ones",
+            subject=subject,
+            top_k=None,
+        )

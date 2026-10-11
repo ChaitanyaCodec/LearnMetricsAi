@@ -1,0 +1,88 @@
+{% extends "base/dashboard_base.html" %}
+{% load static %}
+
+{% block title %}Teacher Document Studio | LearnMetrics AI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/teacher-document-generation.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 teacher-document-studio">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <p class="text-primary fw-semibold mb-1">TEACHER WORKSPACE</p>
+            <h1 class="h2 mb-2">AI Document Studio</h1>
+            <p class="text-secondary mb-0">Generate a draft, review and edit it, then export a file. Drafts are not saved.</p>
+        </div>
+        <a class="btn btn-outline-secondary" href="{% url 'rag:teacher:chat' %}"><i class="fa-solid fa-comments me-2"></i>Back to AI Assistant</a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-xl-4">
+            <section class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h2 class="h5 mb-3">1. Describe your document</h2>
+                    <form id="teacher-document-form">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="document-subject" class="form-label">Assigned subject</label>
+                            <select id="document-subject" class="form-select" required>
+                                <option value="">Choose a subject</option>
+                                {% for subject in subjects %}
+                                <option value="{{ subject.pk }}">{{ subject.name }} — {{ subject.semester.course.name }} / Semester {{ subject.semester.semester_number }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="document-instructions" class="form-label">Instructions</label>
+                            <textarea id="document-instructions" class="form-control" rows="7" maxlength="8000" required placeholder="Example: Create a 45-minute lesson plan on normalization with learning objectives, explanation, class activity, and five assessment questions."></textarea>
+                            <div class="form-text">Be specific about audience, length, structure, and learning outcomes.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="document-sources" class="form-label">Approved published sources <span class="text-secondary fw-normal">(optional, max 5)</span></label>
+                            <select id="document-sources" class="form-select" multiple size="6">
+                                {% for document in source_documents %}
+                                <option value="{{ document.pk }}" data-subject-id="{{ document.subject_id }}">{{ document.title }} — {{ document.subject.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Only approved, published, fully processed documents for your assigned subjects are listed.</div>
+                        </div>
+                        <button class="btn btn-primary w-100" type="submit" id="generate-document-button"><i class="fa-solid fa-wand-magic-sparkles me-2"></i>Generate draft</button>
+                    </form>
+                    <div id="generation-status" class="small mt-3" role="status" aria-live="polite"></div>
+                </div>
+            </section>
+        </div>
+
+        <div class="col-12 col-xl-8">
+            <section class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <div>
+                            <h2 class="h5 mb-1">2. Review and edit</h2>
+                            <p class="small text-secondary mb-0">Check accuracy and remove anything you do not want to use before exporting.</p>
+                        </div>
+                        <span class="badge text-bg-warning">Draft — not approved</span>
+                    </div>
+                    <label for="generated-document-title" class="form-label">Document title</label>
+                    <input id="generated-document-title" class="form-control mb-3" maxlength="120" value="Teacher document draft" placeholder="Document title">
+                    <label for="generated-document-content" class="form-label">Editable content</label>
+                    <textarea id="generated-document-content" class="form-control document-content-editor" rows="22" maxlength="60000" placeholder="Your generated draft will appear here. You can edit it before export."></textarea>
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <button type="button" class="btn btn-outline-primary" data-export-format="pdf"><i class="fa-regular fa-file-pdf me-2"></i>Download PDF</button>
+                        <button type="button" class="btn btn-outline-primary" data-export-format="docx"><i class="fa-regular fa-file-word me-2"></i>Download DOCX</button>
+                        <button type="button" class="btn btn-outline-primary" data-export-format="pptx"><i class="fa-regular fa-file-powerpoint me-2"></i>Download PPTX</button>
+                    </div>
+                    <p class="small text-secondary mt-3 mb-0">Exports are generated on demand and downloaded immediately. The application does not store generated drafts or generation history.</p>
+                    <div id="export-status" class="small mt-2" role="status" aria-live="polite"></div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/teacher-document-generation.js' %}"></script>
+{% endblock %}

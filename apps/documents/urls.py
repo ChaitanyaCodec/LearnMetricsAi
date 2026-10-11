@@ -64,6 +64,11 @@ urlpatterns = [
         name="document-version-download",
     ),
     path(
+        "<int:document_id>/versions/<int:version_id>/preview/",
+        views.DocumentVersionPreviewView.as_view(),
+        name="document-version-preview",
+    ),
+    path(
         "review/",
         views.DocumentReviewQueueView.as_view(),
         name="review-queue",

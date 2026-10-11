@@ -2,11 +2,31 @@ from dataclasses import dataclass
 
 from .embeddings import EmbeddingService
 from .generation import AnswerGenerationService
+
+
+from .reframing import PromptReframer
+
 from .retrieval import RetrievalService
 
-
+from .generation.exceptions import GenerationError
+from .generation.providers.factory import get_llm_provider
+from .reframing.llm import LLMReframer
 class RagServiceError(Exception):
     """Base exception for RAG service failures."""
+
+
+class RagNoRelevantContextError(RagServiceError):
+    """
+    Raised when retrieval completes successfully but does not
+    return relevant document context for the question.
+    """
+
+
+class RagClarificationRequiredError(RagServiceError):
+    """
+    Raised when the prompt reframer determines that the
+    student's question is ambiguous and requires clarification.
+    """
 
 
 @dataclass(frozen=True)
@@ -30,6 +50,8 @@ class RagService:
     Pipeline:
         Question
             ↓
+        Prompt Reframing
+            ↓
         Embedding
             ↓
         Vector Retrieval
@@ -47,6 +69,8 @@ class RagService:
         embedding_service=None,
         retrieval_service=None,
         generation_service=None,
+        reframer=None,
+        enable_llm_reframing=False,
     ):
         self.embedding_service = (
             embedding_service
@@ -65,6 +89,28 @@ class RagService:
             if generation_service is not None
             else AnswerGenerationService()
         )
+
+        if reframer is not None:
+            self.reframer = reframer
+        elif enable_llm_reframing:
+            self.reframer = self._build_llm_reframer()
+        else:
+            self.reframer = PromptReframer()
+
+    @staticmethod
+    def _build_llm_reframer():
+        try:
+            provider_manager = get_llm_provider()
+
+            return PromptReframer(
+                llm_reframer=LLMReframer(
+                    provider_manager=provider_manager
+                )
+            )
+
+        except GenerationError:
+            return PromptReframer()
+
 
     def retrieve_question(
         self,
@@ -133,6 +179,29 @@ class RagService:
     ):
         self._validate_question(question)
 
+        reframing_subject = None
+
+        if subject is not None:
+            if isinstance(subject, str):
+                reframing_subject = subject
+            else:
+                reframing_subject = getattr(
+                    subject,
+                    "name",
+                    None,
+                )
+
+        reframing_result = self.reframer.reframe(
+            question=question,
+            subject=reframing_subject,
+        )
+
+        if reframing_result.clarification_needed:
+            raise RagClarificationRequiredError(
+                "The question needs clarification before "
+                "retrieval can continue."
+            )
+
         retrieve_kwargs = {
             "question": question,
             "subject": subject,
@@ -152,9 +221,16 @@ class RagService:
 
         chunks = tuple(chunks)
 
+        if not chunks:
+            raise RagNoRelevantContextError(
+                "No relevant study material was found "
+                "for this question."
+            )
+
         generation_kwargs = {
             "question": question.strip(),
             "chunks": chunks,
+            "reframing_result": reframing_result,
         }
 
         if conversation_history is not None:

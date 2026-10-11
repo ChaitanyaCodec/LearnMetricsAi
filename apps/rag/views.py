@@ -5,7 +5,6 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
 
-from apps.academics.csv import subject
 from apps.academics.models import Subject
 from apps.students.models import StudentEnrollment
 
@@ -21,7 +20,10 @@ from .conversations import (
     ConversationValidationError,
     can_access_conversation_subject,
 )
+from .guidance import QueryGuidanceService
 from .services import (
+    RagClarificationRequiredError,
+    RagNoRelevantContextError,
     RagService,
     RagServiceError,
 )
@@ -36,10 +38,6 @@ class StudentRAGChatView(LoginRequiredMixin, View):
 
     Accessible subjects are derived from the authenticated
     student's active enrollments.
-
-    This view only prepares page data. RAG generation and
-    conversation operations continue to use the existing
-    RAG API endpoints.
     """
 
     template_name = "rag/student_chat.html"
@@ -90,6 +88,8 @@ class RagAskAPIView(LoginRequiredMixin, View):
     POST /rag/ask/
     """
 
+    guidance_service = QueryGuidanceService()
+
     def post(self, request, *args, **kwargs):
         try:
             payload = json.loads(
@@ -98,7 +98,8 @@ class RagAskAPIView(LoginRequiredMixin, View):
         except (json.JSONDecodeError, UnicodeDecodeError):
             return JsonResponse(
                 {
-                    "error": "Invalid JSON request body."
+                    "status": "ERROR",
+                    "error": "Invalid JSON request body.",
                 },
                 status=400,
             )
@@ -108,7 +109,8 @@ class RagAskAPIView(LoginRequiredMixin, View):
         if not isinstance(question, str) or not question.strip():
             return JsonResponse(
                 {
-                    "error": "Question is required."
+                    "status": "ERROR",
+                    "error": "Question is required.",
                 },
                 status=400,
             )
@@ -121,7 +123,8 @@ class RagAskAPIView(LoginRequiredMixin, View):
         ):
             return JsonResponse(
                 {
-                    "error": "subject_id must be an integer."
+                    "status": "ERROR",
+                    "error": "subject_id must be an integer.",
                 },
                 status=400,
             )
@@ -140,7 +143,8 @@ class RagAskAPIView(LoginRequiredMixin, View):
         except Subject.DoesNotExist:
             return JsonResponse(
                 {
-                    "error": "Subject not found."
+                    "status": "ERROR",
+                    "error": "Subject not found.",
                 },
                 status=404,
             )
@@ -151,28 +155,75 @@ class RagAskAPIView(LoginRequiredMixin, View):
         ):
             return JsonResponse(
                 {
-                    "error": "You do not have access to this subject."
+                    "status": "ERROR",
+                    "error": "You do not have access to this subject.",
                 },
                 status=403,
             )
 
         try:
-            result = RagService.answer_question_with_sources(
+            rag_service = RagService(
+                enable_llm_reframing=True
+            )
+
+            result = rag_service.answer_question_with_sources(
                 user=request.user,
                 question=question.strip(),
                 subject=subject,
                 top_k=top_k,
             )
+        except RagClarificationRequiredError:
+            guidance = self.guidance_service.build(
+                question=question.strip(),
+                reason=QueryGuidanceService.CLARIFICATION,
+                subject=subject,
+            )
+
+            return JsonResponse(
+                {
+                    "status": "CLARIFICATION",
+                    "guidance": {
+                        "message": guidance.message,
+                        "suggestions": list(
+                            guidance.suggestions
+                        ),
+                        "reason": guidance.reason,
+                    },
+                }
+            )
+        except RagNoRelevantContextError:
+            guidance = self.guidance_service.build(
+                question=question.strip(),
+                reason=(
+                    QueryGuidanceService.NO_RELEVANT_CONTEXT
+                ),
+                subject=subject,
+            )
+
+            return JsonResponse(
+                {
+                    "status": "NO_RELEVANT_CONTEXT",
+                    "guidance": {
+                        "message": guidance.message,
+                        "suggestions": list(
+                            guidance.suggestions
+                        ),
+                        "reason": guidance.reason,
+                    },
+                }
+            )
         except RagServiceError as exc:
             return JsonResponse(
                 {
-                    "error": str(exc)
+                    "status": "ERROR",
+                    "error": str(exc),
                 },
                 status=502,
             )
 
         return JsonResponse(
             {
+                "status": "ANSWER",
                 "answer": result.answer,
                 "sources": self._serialize_sources(
                     result.chunks
@@ -182,7 +233,7 @@ class RagAskAPIView(LoginRequiredMixin, View):
 
     def _validate_top_k(self, value):
         if value is None:
-            return 5
+            return None
 
         if (
             isinstance(value, bool)
@@ -190,18 +241,28 @@ class RagAskAPIView(LoginRequiredMixin, View):
         ):
             return JsonResponse(
                 {
-                    "error": "top_k must be an integer."
+                    "status": "ERROR",
+                    "error": "top_k must be an integer.",
                 },
                 status=400,
             )
 
-        if value <= 0 or value > MAX_TOP_K:
+        if value <= 0:
             return JsonResponse(
                 {
+                    "status": "ERROR",
+                    "error": "top_k must be greater than zero.",
+                },
+                status=400,
+            )
+
+        if value > MAX_TOP_K:
+            return JsonResponse(
+                {
+                    "status": "ERROR",
                     "error": (
-                        f"top_k must be between 1 and "
-                        f"{MAX_TOP_K}."
-                    )
+                        f"top_k cannot exceed {MAX_TOP_K}."
+                    ),
                 },
                 status=400,
             )
@@ -225,28 +286,33 @@ class RagAskAPIView(LoginRequiredMixin, View):
             )
         )
 
-    def _serialize_sources(self, chunks):
+    @staticmethod
+    def _serialize_sources(chunks):
         sources = []
 
         for chunk in chunks:
-            document = getattr(
+            document_version = getattr(
                 chunk,
+                "document_version",
+                None,
+            )
+
+            if document_version is None:
+                continue
+
+            document = getattr(
+                document_version,
                 "document",
                 None,
             )
 
+            if document is None:
+                continue
+
             sources.append(
                 {
-                    "document_id": (
-                        document.id
-                        if document is not None
-                        else None
-                    ),
-                    "document_title": (
-                        document.title
-                        if document is not None
-                        else None
-                    ),
+                    "document_id": document.id,
+                    "document_title": document.title,
                     "chunk_id": chunk.id,
                     "page_number": getattr(
                         chunk,
@@ -273,11 +339,16 @@ class ConversationListCreateAPIView(
     conversation_service = ConversationService()
 
     def get(self, request, *args, **kwargs):
-        conversations = (
-            self.conversation_service.list_conversations(
+        conversations = [
+            conversation
+            for conversation in self.conversation_service.list_conversations(
                 user=request.user
             )
-        )
+            if can_access_conversation_subject(
+                request.user,
+                conversation.subject,
+            )
+        ]
 
         return JsonResponse(
             {
@@ -298,7 +369,8 @@ class ConversationListCreateAPIView(
         except (json.JSONDecodeError, UnicodeDecodeError):
             return JsonResponse(
                 {
-                    "error": "Invalid JSON request body."
+                    "status": "ERROR",
+                    "error": "Invalid JSON request body.",
                 },
                 status=400,
             )
@@ -312,10 +384,11 @@ class ConversationListCreateAPIView(
         ):
             return JsonResponse(
                 {
+                    "status": "ERROR",
                     "error": (
                         "A positive integer subject_id "
                         "is required."
-                    )
+                    ),
                 },
                 status=400,
             )
@@ -325,10 +398,11 @@ class ConversationListCreateAPIView(
         if not isinstance(title, str):
             return JsonResponse(
                 {
+                    "status": "ERROR",
                     "error": (
                         "Conversation title must be "
                         "a string."
-                    )
+                    ),
                 },
                 status=400,
             )
@@ -340,7 +414,8 @@ class ConversationListCreateAPIView(
         except Subject.DoesNotExist:
             return JsonResponse(
                 {
-                    "error": "Subject not found."
+                    "status": "ERROR",
+                    "error": "Subject not found.",
                 },
                 status=404,
             )
@@ -351,10 +426,11 @@ class ConversationListCreateAPIView(
         ):
             return JsonResponse(
                 {
+                    "status": "ERROR",
                     "error": (
                         "You do not have access to "
                         "this subject."
-                    )
+                    ),
                 },
                 status=403,
             )
@@ -371,27 +447,31 @@ class ConversationListCreateAPIView(
         except ConversationValidationError as exc:
             return JsonResponse(
                 {
-                    "error": str(exc)
+                    "status": "ERROR",
+                    "error": str(exc),
                 },
                 status=400,
             )
         except ConversationServiceError as exc:
             return JsonResponse(
                 {
-                    "error": str(exc)
+                    "status": "ERROR",
+                    "error": str(exc),
                 },
                 status=500,
             )
 
         return JsonResponse(
-            self._serialize_conversation(
-                conversation
-            ),
+            {
+                "conversation": self._serialize_conversation(
+                    conversation
+                ),
+            },
             status=201,
         )
 
+    @staticmethod
     def _serialize_conversation(
-        self,
         conversation,
     ):
         return {
@@ -410,9 +490,19 @@ class ConversationDetailAPIView(
     View,
 ):
     """
-    Return one conversation with its messages.
+    Conversation management endpoint.
 
-    GET /rag/conversations/<conversation_id>/
+    GET:
+        Return one active conversation with messages.
+
+    PATCH:
+        Rename one active conversation.
+
+    DELETE:
+        Soft-delete one active conversation.
+
+    Endpoint:
+        /rag/conversations/<conversation_id>/
     """
 
     conversation_service = ConversationService()
@@ -435,26 +525,224 @@ class ConversationDetailAPIView(
         except ConversationNotFoundError as exc:
             return JsonResponse(
                 {
-                    "error": str(exc)
+                    "status": "ERROR",
+                    "error": str(exc),
                 },
                 status=404,
             )
         except ConversationServiceError as exc:
             return JsonResponse(
                 {
-                    "error": str(exc)
+                    "status": "ERROR",
+                    "error": str(exc),
+                },
+                status=500,
+            )
+
+        if not can_access_conversation_subject(
+            request.user,
+            conversation.subject,
+        ):
+            return self._access_denied_response()
+
+        return JsonResponse(
+            {
+                "conversation": self._serialize_conversation(
+                    conversation
+                ),
+            }
+        )
+
+    def patch(
+        self,
+        request,
+        conversation_id,
+        *args,
+        **kwargs,
+    ):
+        try:
+            payload = json.loads(
+                request.body.decode("utf-8")
+            )
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return JsonResponse(
+                {
+                    "status": "ERROR",
+                    "error": "Invalid JSON request body.",
+                },
+                status=400,
+            )
+
+        title = payload.get("title")
+
+        if not isinstance(title, str):
+            return JsonResponse(
+                {
+                    "status": "ERROR",
+                    "error": (
+                        "Conversation title must be "
+                        "a string."
+                    ),
+                },
+                status=400,
+            )
+
+        try:
+            existing_conversation = (
+                self.conversation_service.get_conversation(
+                    user=request.user,
+                    conversation_id=conversation_id,
+                )
+            )
+        except ConversationNotFoundError as exc:
+            return JsonResponse(
+                {
+                    "status": "ERROR",
+                    "error": str(exc),
+                },
+                status=404,
+            )
+        except ConversationServiceError as exc:
+            return JsonResponse(
+                {
+                    "status": "ERROR",
+                    "error": str(exc),
+                },
+                status=500,
+            )
+
+        if not can_access_conversation_subject(
+            request.user,
+            existing_conversation.subject,
+        ):
+            return self._access_denied_response()
+
+        try:
+            conversation = (
+                self.conversation_service
+                .rename_conversation(
+                    user=request.user,
+                    conversation_id=conversation_id,
+                    title=title,
+                )
+            )
+        except ConversationValidationError as exc:
+            return JsonResponse(
+                {
+                    "status": "ERROR",
+                    "error": str(exc),
+                },
+                status=400,
+            )
+        except ConversationNotFoundError as exc:
+            return JsonResponse(
+                {
+                    "status": "ERROR",
+                    "error": str(exc),
+                },
+                status=404,
+            )
+        except ConversationServiceError as exc:
+            return JsonResponse(
+                {
+                    "status": "ERROR",
+                    "error": str(exc),
                 },
                 status=500,
             )
 
         return JsonResponse(
-            self._serialize_conversation(
-                conversation
-            )
+            {
+                "status": "UPDATED",
+                "conversation": self._serialize_conversation(
+                    conversation
+                ),
+            }
         )
 
-    def _serialize_conversation(
+    def delete(
         self,
+        request,
+        conversation_id,
+        *args,
+        **kwargs,
+    ):
+        try:
+            existing_conversation = (
+                self.conversation_service.get_conversation(
+                    user=request.user,
+                    conversation_id=conversation_id,
+                )
+            )
+        except ConversationNotFoundError as exc:
+            return JsonResponse(
+                {
+                    "status": "ERROR",
+                    "error": str(exc),
+                },
+                status=404,
+            )
+        except ConversationServiceError as exc:
+            return JsonResponse(
+                {
+                    "status": "ERROR",
+                    "error": str(exc),
+                },
+                status=500,
+            )
+
+        if not can_access_conversation_subject(
+            request.user,
+            existing_conversation.subject,
+        ):
+            return self._access_denied_response()
+
+        try:
+            conversation = (
+                self.conversation_service
+                .delete_conversation(
+                    user=request.user,
+                    conversation_id=conversation_id,
+                )
+            )
+        except ConversationNotFoundError as exc:
+            return JsonResponse(
+                {
+                    "status": "ERROR",
+                    "error": str(exc),
+                },
+                status=404,
+            )
+        except ConversationServiceError as exc:
+            return JsonResponse(
+                {
+                    "status": "ERROR",
+                    "error": str(exc),
+                },
+                status=500,
+            )
+
+        return JsonResponse(
+            {
+                "status": "DELETED",
+                "conversation_id": str(
+                    conversation.id
+                ),
+            }
+        )
+
+    @staticmethod
+    def _access_denied_response():
+        return JsonResponse(
+            {
+                "status": "ERROR",
+                "error": "You do not have access to this conversation.",
+            },
+            status=403,
+        )
+
+    @staticmethod
+    def _serialize_conversation(
         conversation,
     ):
         return {
@@ -466,13 +754,15 @@ class ConversationDetailAPIView(
             "created_at": conversation.created_at.isoformat(),
             "updated_at": conversation.updated_at.isoformat(),
             "messages": [
-                self._serialize_message(message)
+                ConversationDetailAPIView._serialize_message(
+                    message
+                )
                 for message in conversation.messages.all()
             ],
         }
 
+    @staticmethod
     def _serialize_message(
-        self,
         message,
     ):
         return {
@@ -499,6 +789,7 @@ class ConversationMessageAPIView(
     """
 
     conversation_service = ConversationService()
+    guidance_service = QueryGuidanceService()
 
     def post(
         self,
@@ -514,7 +805,8 @@ class ConversationMessageAPIView(
         except (json.JSONDecodeError, UnicodeDecodeError):
             return JsonResponse(
                 {
-                    "error": "Invalid JSON request body."
+                    "status": "ERROR",
+                    "error": "Invalid JSON request body.",
                 },
                 status=400,
             )
@@ -524,7 +816,8 @@ class ConversationMessageAPIView(
         if not isinstance(question, str) or not question.strip():
             return JsonResponse(
                 {
-                    "error": "Question is required."
+                    "status": "ERROR",
+                    "error": "Question is required.",
                 },
                 status=400,
             )
@@ -547,14 +840,16 @@ class ConversationMessageAPIView(
         except ConversationNotFoundError as exc:
             return JsonResponse(
                 {
-                    "error": str(exc)
+                    "status": "ERROR",
+                    "error": str(exc),
                 },
                 status=404,
             )
         except ConversationServiceError as exc:
             return JsonResponse(
                 {
-                    "error": str(exc)
+                    "status": "ERROR",
+                    "error": str(exc),
                 },
                 status=500,
             )
@@ -565,10 +860,11 @@ class ConversationMessageAPIView(
         ):
             return JsonResponse(
                 {
+                    "status": "ERROR",
                     "error": (
                         "You do not have access to "
                         "this conversation."
-                    )
+                    ),
                 },
                 status=403,
             )
@@ -591,17 +887,71 @@ class ConversationMessageAPIView(
         )
 
         try:
-            rag_service = RagService()
+            rag_service = RagService(
+                enable_llm_reframing=True
+            )
 
             result = rag_service.answer_question_with_sources(
                 user=request.user,
                 question=question,
                 subject=conversation.subject,
+                top_k=top_k,
                 conversation_history=history,
+            )
+
+
+        except RagClarificationRequiredError:
+            guidance = self.guidance_service.build(
+                question=question.strip(),
+                reason=QueryGuidanceService.CLARIFICATION,
+                subject=conversation.subject,
+                conversation_history=history,
+            )
+
+            return JsonResponse(
+                {
+                    "status": "CLARIFICATION",
+                    "user_message_id": str(
+                        user_message.id
+                    ),
+                    "guidance": {
+                        "message": guidance.message,
+                        "suggestions": list(
+                            guidance.suggestions
+                        ),
+                        "reason": guidance.reason,
+                    },
+                }
+            )
+        except RagNoRelevantContextError:
+            guidance = self.guidance_service.build(
+                question=question.strip(),
+                reason=(
+                    QueryGuidanceService.NO_RELEVANT_CONTEXT
+                ),
+                subject=conversation.subject,
+                conversation_history=history,
+            )
+
+            return JsonResponse(
+                {
+                    "status": "NO_RELEVANT_CONTEXT",
+                    "user_message_id": str(
+                        user_message.id
+                    ),
+                    "guidance": {
+                        "message": guidance.message,
+                        "suggestions": list(
+                            guidance.suggestions
+                        ),
+                        "reason": guidance.reason,
+                    },
+                }
             )
         except RagServiceError as exc:
             return JsonResponse(
                 {
+                    "status": "ERROR",
                     "error": str(exc),
                     "user_message_id": str(
                         user_message.id
@@ -628,6 +978,7 @@ class ConversationMessageAPIView(
 
         return JsonResponse(
             {
+                "status": "ANSWER",
                 "user_message": (
                     self._serialize_message(
                         user_message
@@ -645,7 +996,7 @@ class ConversationMessageAPIView(
 
     def _validate_top_k(self, value):
         if value is None:
-            return 5
+            return None
 
         if (
             isinstance(value, bool)
@@ -653,46 +1004,61 @@ class ConversationMessageAPIView(
         ):
             return JsonResponse(
                 {
-                    "error": "top_k must be an integer."
+                    "status": "ERROR",
+                    "error": "top_k must be an integer.",
                 },
                 status=400,
             )
 
-        if value <= 0 or value > MAX_TOP_K:
+        if value <= 0:
             return JsonResponse(
                 {
+                    "status": "ERROR",
+                    "error": "top_k must be greater than zero.",
+                },
+                status=400,
+            )
+
+        if value > MAX_TOP_K:
+            return JsonResponse(
+                {
+                    "status": "ERROR",
                     "error": (
-                        f"top_k must be between 1 and "
-                        f"{MAX_TOP_K}."
-                    )
+                        f"top_k cannot exceed {MAX_TOP_K}."
+                    ),
                 },
                 status=400,
             )
 
         return value
 
-    def _serialize_sources(self, chunks):
+    @staticmethod
+    def _serialize_sources(chunks):
         sources = []
 
         for chunk in chunks:
-            document = getattr(
+            document_version = getattr(
                 chunk,
+                "document_version",
+                None,
+            )
+
+            if document_version is None:
+                continue
+
+            document = getattr(
+                document_version,
                 "document",
                 None,
             )
 
+            if document is None:
+                continue
+
             sources.append(
                 {
-                    "document_id": (
-                        document.id
-                        if document is not None
-                        else None
-                    ),
-                    "document_title": (
-                        document.title
-                        if document is not None
-                        else None
-                    ),
+                    "document_id": document.id,
+                    "document_title": document.title,
                     "chunk_id": chunk.id,
                     "page_number": getattr(
                         chunk,
@@ -704,8 +1070,8 @@ class ConversationMessageAPIView(
 
         return sources
 
+    @staticmethod
     def _serialize_message(
-        self,
         message,
     ):
         return {

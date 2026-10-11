@@ -1,36 +1,65 @@
 {% extends "base/dashboard_base.html" %}
-
-{% block title %}
-Teacher Dashboard
-{% endblock %}
-
-{% block navbar_title %}
-Teacher Dashboard
-{% endblock %}
-
+{% load static %}
+{% block title %}Teacher Dashboard | LearnMetrics AI{% endblock %}
+{% block navbar_title %}Teacher Dashboard{% endblock %}
+{% block navbar_subtitle %}Your teaching workspace{% endblock %}
 {% block content %}
-<div class="row g-3 mb-4">
-    <div class="col-md-6">
-        <a
-            href="{% url 'documents:list' %}"
-            class="btn btn-outline-primary w-100 py-3"
-        >
-            <i class="fa-solid fa-folder-open me-2"></i>
-            My Documents
-        </a>
+<section class="dashboard-hero mb-4">
+  <div class="hero-content">
+    <span class="hero-badge"><i class="fa-solid fa-chalkboard-user me-1"></i> LearnMetrics AI · Teacher</span>
+    <h1>Welcome back, {{ request.user.first_name|default:request.user.email }} 👋</h1>
+    <p>Manage assigned subjects, prepare teaching resources, and review your learning materials.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{% url 'documents:upload' %}"><i class="fa-solid fa-upload me-2"></i>Upload Material</a>
+      <a class="btn btn-outline-primary" href="{% url 'rag:teacher:chat' %}"><i class="fa-solid fa-robot me-2"></i>Teacher AI Assistant</a>
+      <a class="btn btn-outline-primary" href="{% url 'rag:teacher:documents' %}"><i class="fa-solid fa-file-circle-plus me-2"></i>AI Document Studio</a>
     </div>
+  </div>
+  <div class="hero-illustration"><div class="hero-circle"><i class="fa-solid fa-book-open-reader"></i></div></div>
+</section>
 
-    <div class="col-md-6">
-        <a
-            href="{% url 'documents:upload' %}"
-            class="btn btn-primary w-100 py-3"
-        >
-            <i class="fa-solid fa-upload me-2"></i>
-            Upload Learning Material
-        </a>
-    </div>
+<div class="row g-4 mb-4">
+  <div class="col-xl-3 col-md-6"><div class="kpi-card"><div class="kpi-content"><span class="kpi-label">Assigned Subjects</span><h2 class="kpi-value">{{ dashboard.assigned_subjects }}</h2><span class="kpi-change text-muted">Live data</span></div><div class="kpi-icon"><i class="fa-solid fa-book"></i></div></div></div>
+  <div class="col-xl-3 col-md-6"><div class="kpi-card"><div class="kpi-content"><span class="kpi-label">Courses</span><h2 class="kpi-value">{{ dashboard.assigned_courses }}</h2><span class="kpi-change text-muted">Live data</span></div><div class="kpi-icon"><i class="fa-solid fa-graduation-cap"></i></div></div></div>
+  <div class="col-xl-3 col-md-6"><div class="kpi-card"><div class="kpi-content"><span class="kpi-label">My Documents</span><h2 class="kpi-value">{{ dashboard.my_documents_count }}</h2><span class="kpi-change text-muted">Live data</span></div><div class="kpi-icon"><i class="fa-solid fa-folder-open"></i></div></div></div>
+  <div class="col-xl-3 col-md-6"><div class="kpi-card"><div class="kpi-content"><span class="kpi-label">Pending Review</span><h2 class="kpi-value">{{ dashboard.pending_review_count }}</h2><span class="kpi-change text-muted">Live data</span></div><div class="kpi-icon"><i class="fa-solid fa-clipboard-check"></i></div></div></div>
 </div>
 
-<h2>Teacher Dashboard</h2>
+<div class="row g-4 mb-4">
+  <div class="col-lg-7"><div class="card-custom h-100">
+    <div class="card-header-custom"><h5 class="card-title mb-0">My Assigned Subjects</h5></div>
+    <div class="card-body-custom">
+      {% if dashboard.assigned_subject_list %}
+      <div class="list-group list-group-flush">{% for assignment in dashboard.assigned_subject_list %}
+        <div class="list-group-item px-0 d-flex justify-content-between"><div><strong>{{ assignment.subject.name }}</strong><br><small class="text-muted">{{ assignment.subject.code }} · {{ assignment.course.name }} · {{ assignment.semester.name }}</small></div><span class="badge bg-primary-subtle text-primary">Assigned</span></div>
+      {% endfor %}</div>
+      {% else %}<div class="text-center py-4"><i class="fa-solid fa-book-open fa-2x text-muted mb-3"></i><h6>No active subject assignments</h6><p class="text-muted">Your assignments will appear here when configured by an administrator.</p></div>{% endif %}
+    </div>
+  </div></div>
+  <div class="col-lg-5"><div class="card-custom h-100">
+    <div class="card-header-custom"><h5 class="card-title mb-0">Quick Actions</h5></div>
+    <div class="card-body-custom d-grid gap-2">
+      <a class="btn btn-outline-primary text-start" href="{% url 'documents:list' %}"><i class="fa-solid fa-folder-open me-2"></i>Manage Documents</a>
+      <a class="btn btn-outline-primary text-start" href="{% url 'documents:upload' %}"><i class="fa-solid fa-cloud-arrow-up me-2"></i>Upload Learning Material</a>
+      <a class="btn btn-outline-primary text-start" href="{% url 'rag:teacher:chat' %}"><i class="fa-solid fa-robot me-2"></i>Teacher AI Assistant</a>
+      <a class="btn btn-outline-primary text-start" href="{% url 'rag:teacher:documents' %}"><i class="fa-solid fa-file-circle-plus me-2"></i>AI Document Studio</a>
+    </div>
+  </div></div>
+</div>
 
+<div class="card-custom mb-4">
+  <div class="card-header-custom d-flex justify-content-between align-items-center"><h5 class="card-title mb-0">Recently Created Materials</h5><span class="badge bg-success-subtle text-success">Live data</span></div>
+  <div class="card-body-custom p-0">
+  {% if dashboard.recent_documents %}<div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Document</th><th>Subject</th><th>Status</th><th>Updated</th></tr></thead><tbody>
+  {% for document in dashboard.recent_documents %}<tr><td><strong>{{ document.title }}</strong><br><small class="text-muted">{{ document.description|default:"Learning material"|truncatechars:70 }}</small></td><td>{{ document.subject.name }}</td><td>{{ document.get_status_display }}</td><td>{{ document.updated_at|date:"d M Y" }}</td></tr>{% endfor %}
+  </tbody></table></div>{% else %}<div class="text-center py-4"><p class="text-muted mb-0">No documents found for your active subjects.</p></div>{% endif %}
+  </div>
+</div>
+
+<div class="card-custom">
+  <div class="card-header-custom d-flex justify-content-between align-items-center"><h5 class="card-title mb-0">Coming Soon · Demo Preview</h5><span class="badge bg-warning text-dark">DEMO DATA</span></div>
+  <div class="card-body-custom"><p class="text-muted">These are illustrative placeholders, not live institution data. They will be connected when the related modules are implemented.</p>
+    <div class="row g-3">{% for item in dashboard.demo_features %}<div class="col-xl-3 col-md-6"><div class="border rounded-3 p-3 h-100"><small class="text-muted">{{ item.title }}</small><h4 class="my-2">{{ item.value }}</h4><span class="badge bg-warning-subtle text-dark mb-2">Demo only</span><p class="small text-muted mb-0">{{ item.description }}</p></div></div>{% endfor %}</div>
+  </div>
+</div>
 {% endblock %}

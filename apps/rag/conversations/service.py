@@ -13,6 +13,7 @@ from .exceptions import (
 
 DEFAULT_HISTORY_LIMIT = 10
 MAX_HISTORY_LIMIT = 50
+MAX_CONVERSATION_TITLE_LENGTH = 120
 
 
 class ConversationService:
@@ -71,6 +72,100 @@ class ConversationService:
             raise ConversationNotFoundError(
                 "Conversation not found."
             ) from exc
+
+    def rename_conversation(
+        self,
+        *,
+        user,
+        conversation_id,
+        title,
+    ):
+        """
+        Rename an active conversation owned by the user.
+        """
+
+        self._validate_user(user)
+        self._validate_rename_title(title)
+
+        with transaction.atomic():
+            try:
+                conversation = (
+                    Conversation.objects
+                    .select_for_update()
+                    .select_related("subject")
+                    .get(
+                        id=conversation_id,
+                        user=user,
+                        is_active=True,
+                    )
+                )
+            except Conversation.DoesNotExist as exc:
+                raise ConversationNotFoundError(
+                    "Conversation not found."
+                ) from exc
+
+            try:
+                conversation.title = title.strip()
+
+                conversation.save(
+                    update_fields=[
+                        "title",
+                        "updated_at",
+                    ]
+                )
+            except Exception as exc:
+                raise ConversationServiceError(
+                    "Failed to rename conversation."
+                ) from exc
+
+        return conversation
+
+    def delete_conversation(
+        self,
+        *,
+        user,
+        conversation_id,
+    ):
+        """
+        Soft-delete an active conversation.
+
+        The conversation and its messages remain in the database.
+        Only is_active is changed so historical data is preserved.
+        """
+
+        self._validate_user(user)
+
+        with transaction.atomic():
+            try:
+                conversation = (
+                    Conversation.objects
+                    .select_for_update()
+                    .get(
+                        id=conversation_id,
+                        user=user,
+                        is_active=True,
+                    )
+                )
+            except Conversation.DoesNotExist as exc:
+                raise ConversationNotFoundError(
+                    "Conversation not found."
+                ) from exc
+
+            try:
+                conversation.is_active = False
+
+                conversation.save(
+                    update_fields=[
+                        "is_active",
+                        "updated_at",
+                    ]
+                )
+            except Exception as exc:
+                raise ConversationServiceError(
+                    "Failed to delete conversation."
+                ) from exc
+
+        return conversation
 
     def get_conversation_history(
         self,
@@ -249,6 +344,22 @@ class ConversationService:
         if not isinstance(title, str):
             raise ConversationValidationError(
                 "Conversation title must be a string."
+            )
+
+    def _validate_rename_title(self, title):
+        self._validate_title(title)
+
+        normalized_title = title.strip()
+
+        if not normalized_title:
+            raise ConversationValidationError(
+                "Conversation title cannot be empty."
+            )
+
+        if len(normalized_title) > MAX_CONVERSATION_TITLE_LENGTH:
+            raise ConversationValidationError(
+                "Conversation title cannot exceed "
+                f"{MAX_CONVERSATION_TITLE_LENGTH} characters."
             )
 
     def _validate_content(self, content):

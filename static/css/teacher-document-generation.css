@@ -1,0 +1,5 @@
+.teacher-document-studio .card { border-radius: 1rem; }
+.teacher-document-studio .form-label { font-weight: 600; }
+.teacher-document-studio .document-content-editor { min-height: 28rem; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .92rem; line-height: 1.55; }
+.teacher-document-studio #document-sources { min-height: 8rem; }
+.teacher-document-studio button:disabled { cursor: wait; opacity: .7; }

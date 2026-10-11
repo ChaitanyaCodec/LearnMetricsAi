@@ -49,31 +49,36 @@
 
             </li>
 
+{% if request.user.role == "ADMIN" %}
             <li class="nav-item">
-
-    <a class="nav-link"
-       href="{% url 'academics:dashboard' %}">
-
-        <i class="fa-solid fa-graduation-cap"></i>
-
-        <span>Academics</span>
-
-    </a>
-
-</li>
-
-            <li class="nav-item">
-
-                <a href="{% url 'teachers:dashboard' %}"
-                   class="nav-link">
-
-                    <i class="fa-solid fa-chalkboard-user"></i>
-
-                    <span>Teachers</span>
-
+                <a href="{% url 'academics:dashboard' %}" class="nav-link">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>Academics</span>
                 </a>
-
             </li>
+
+            <li class="nav-item">
+                <a href="{% url 'teachers:dashboard' %}" class="nav-link">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span>Teachers</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'students:dashboard' %}" class="nav-link">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <span>Students</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'academics:course-list' %}" class="nav-link">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <span>Courses</span>
+                </a>
+            </li>
+{% endif %}
+
 {% if request.user.role == "ADMIN" %}
     <li class="nav-item">
         <a
@@ -85,19 +90,6 @@
         </a>
     </li>
 {% endif %}
-
-            <li class="nav-item">
-
-                <a href="{% url 'academics:course-list' %}"
-                   class="nav-link">
-
-                    <i class="fa-solid fa-folder-open"></i>
-
-                    <span>Courses</span>
-
-                </a>
-
-            </li>
 {% if request.user.role == "ADMIN" %}
     <li class="nav-item">
         <a
@@ -109,16 +101,28 @@
         </a>
     </li>
 {% endif %}
-<li class="nav-item">
-            <a href="{% url 'rag:student-chat' %}"
-            class="nav-link">
+{% if request.user.role == "TEACHER" %}
+            <li class="nav-item">
+                <a href="{% url 'rag:teacher:chat' %}" class="nav-link">
+                    <i class="fa-solid fa-robot"></i>
+                    <span>Teacher AI Assistant</span>
+                </a>
+            </li>
 
-                <i class="fa-solid fa-robot"></i>
-
-                <span>AI Assistant</span>
-
-            </a>
-        </li>
+            <li class="nav-item">
+                <a href="{% url 'rag:teacher:documents' %}" class="nav-link">
+                    <i class="fa-solid fa-file-circle-plus"></i>
+                    <span>AI Document Studio</span>
+                </a>
+            </li>
+{% else %}
+            <li class="nav-item">
+                <a href="{% url 'rag:student-chat' %}" class="nav-link">
+                    <i class="fa-solid fa-robot"></i>
+                    <span>AI Assistant</span>
+                </a>
+            </li>
+{% endif %}
 
             <li class="nav-item">
 

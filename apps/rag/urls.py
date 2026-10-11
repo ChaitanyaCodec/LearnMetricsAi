@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 
 from . import views
 
@@ -17,6 +17,14 @@ urlpatterns = [
         name="student-chat",
     ),
 
+
+    path(
+            "teacher/",
+            include(
+                ("apps.rag.teacher.urls", "teacher"),
+                namespace="teacher",
+            ),
+        ),
     # ==========================================================
     # RAG API
     # ==========================================================

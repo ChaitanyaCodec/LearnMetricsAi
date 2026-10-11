@@ -7,25 +7,42 @@
     --lm-primary-hover: #1d4ed8;
     --lm-primary-soft: #eff6ff;
     --lm-primary-border: #bfdbfe;
-    
+
     --lm-bg-body: #f8fafc;
     --lm-bg-card: #ffffff;
     --lm-bg-subtle: #f1f5f9;
-    
+
     --lm-text-heading: #0f172a;
     --lm-text-body: #334155;
     --lm-text-muted: #64748b;
-    
+
     --lm-border: #e2e8f0;
     --lm-border-hover: #cbd5e1;
+
+    --lm-danger: #dc2626;
+    --lm-danger-hover: #b91c1c;
+    --lm-danger-soft: #fef2f2;
+    --lm-danger-border: #fecaca;
+
     --lm-radius-lg: 12px;
     --lm-radius-md: 8px;
-    
-    --lm-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --lm-shadow-panel: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+
+    --lm-shadow-sm:
+        0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+    --lm-shadow-panel:
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 2px 4px -2px rgba(0, 0, 0, 0.05);
+
+    --lm-shadow-modal:
+        0 24px 60px rgba(15, 23, 42, 0.18);
 }
 
-/* Page Frame */
+
+/* ==========================================================================
+   Page Frame
+   ========================================================================== */
+
 .rag-chat-wrapper {
     display: flex;
     flex-direction: column;
@@ -34,7 +51,11 @@
     width: 100%;
 }
 
-/* Header */
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
 .rag-chat-topbar {
     display: flex;
     justify-content: space-between;
@@ -88,11 +109,15 @@
     background-color: var(--lm-primary-hover);
 }
 
-/* Core Workspace */
+
+/* ==========================================================================
+   Core Workspace
+   ========================================================================== */
+
 .rag-workspace {
     flex: 1;
     display: flex;
-    min-height: 0; /* CRUCIAL: Allows children with overflow-y to actually scroll */
+    min-height: 0;
     background: var(--lm-bg-card);
     border: 1px solid var(--lm-border);
     border-radius: var(--lm-radius-lg);
@@ -101,9 +126,11 @@
     position: relative;
 }
 
-/* --------------------------------------------------------------------------
-   Sidebar (History & Deletion)
-   -------------------------------------------------------------------------- */
+
+/* ==========================================================================
+   Sidebar
+   ========================================================================== */
+
 .rag-sidebar {
     width: 280px;
     flex-shrink: 0;
@@ -136,9 +163,12 @@
     background: transparent;
     color: var(--lm-text-muted);
     font-size: 0.9rem;
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
+    padding: 0.35rem 0.45rem;
+    border-radius: 6px;
     cursor: pointer;
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
 }
 
 .btn-icon-subtle:hover {
@@ -149,22 +179,29 @@
 .rag-conversation-scrollarea {
     flex: 1;
     min-height: 0;
-    overflow-y: auto; /* Independent History Scroll */
+    overflow-y: auto;
     padding: 0.5rem;
 }
+
+
+/* ==========================================================================
+   Conversation Item
+   ========================================================================== */
 
 .rag-conversation-item {
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0.65rem 0.75rem;
+    gap: 0.55rem;
+    padding: 0.55rem 0.5rem 0.55rem 0.65rem;
     margin-bottom: 0.25rem;
     border-radius: var(--lm-radius-md);
     cursor: pointer;
     background: transparent;
     border: 1px solid transparent;
-    transition: background-color 0.15s ease;
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease;
 }
 
 .rag-conversation-item:hover {
@@ -175,6 +212,43 @@
     background: var(--lm-primary-soft);
     border-color: var(--lm-primary-border);
 }
+
+
+/* Conversation Icon */
+
+.rag-conversation-icon {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+    background: #ffffff;
+    border: 1px solid var(--lm-border);
+    color: var(--lm-text-muted);
+    font-size: 0.75rem;
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.rag-conversation-item:hover
+.rag-conversation-icon {
+    border-color: var(--lm-border-hover);
+    color: var(--lm-text-body);
+}
+
+.rag-conversation-item.active
+.rag-conversation-icon {
+    background: #ffffff;
+    border-color: var(--lm-primary-border);
+    color: var(--lm-primary);
+}
+
+
+/* Conversation Details */
 
 .rag-conv-details {
     overflow: hidden;
@@ -200,26 +274,127 @@
     margin-top: 2px;
 }
 
-.rag-delete-btn {
-    border: none;
+
+/* ==========================================================================
+   Conversation Action Menu
+   ========================================================================== */
+
+.rag-conversation-actions {
+    position: relative;
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
+.rag-conversation-actions-button {
+    width: 30px;
+    height: 30px;
+    border: 1px solid transparent;
     background: transparent;
     color: #94a3b8;
-    padding: 4px 6px;
-    font-size: 0.75rem;
-    border-radius: 4px;
-    display: none;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: color 0.15s, background-color 0.15s;
+    opacity: 0;
+    transition:
+        opacity 0.15s ease,
+        background-color 0.15s ease,
+        color 0.15s ease,
+        border-color 0.15s ease;
 }
 
-.rag-conversation-item:hover .rag-delete-btn {
-    display: inline-block;
+.rag-conversation-item:hover
+.rag-conversation-actions-button,
+.rag-conversation-actions-button.is-active {
+    opacity: 1;
 }
 
-.rag-delete-btn:hover {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
+.rag-conversation-actions-button:hover,
+.rag-conversation-actions-button.is-active {
+    background: #ffffff;
+    border-color: var(--lm-border);
+    color: var(--lm-text-heading);
 }
+
+.rag-conversation-actions-button:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--lm-primary);
+    outline-offset: 1px;
+}
+
+
+/* Dropdown */
+
+.rag-conversation-actions-menu {
+    position: absolute;
+    z-index: 100;
+    top: calc(100% + 4px);
+    right: 0;
+    width: 148px;
+    padding: 0.3rem;
+    background: #ffffff;
+    border: 1px solid var(--lm-border);
+    border-radius: 9px;
+    box-shadow:
+        0 10px 25px rgba(15, 23, 42, 0.12),
+        0 2px 6px rgba(15, 23, 42, 0.06);
+}
+
+.rag-conversation-action {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    border: none;
+    background: transparent;
+    color: var(--lm-text-body);
+    padding: 0.55rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.76rem;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.rag-conversation-action i {
+    width: 16px;
+    text-align: center;
+    color: var(--lm-text-muted);
+}
+
+.rag-conversation-action:hover {
+    background: var(--lm-bg-subtle);
+    color: var(--lm-text-heading);
+}
+
+.rag-conversation-action:hover i {
+    color: var(--lm-primary);
+}
+
+.rag-conversation-action-danger {
+    color: var(--lm-danger);
+}
+
+.rag-conversation-action-danger i {
+    color: var(--lm-danger);
+}
+
+.rag-conversation-action-danger:hover {
+    background: var(--lm-danger-soft);
+    color: var(--lm-danger-hover);
+}
+
+.rag-conversation-action-danger:hover i {
+    color: var(--lm-danger-hover);
+}
+
+
+/* ==========================================================================
+   Empty Sidebar
+   ========================================================================== */
 
 .rag-empty-sidebar {
     text-align: center;
@@ -238,15 +413,17 @@
     margin-bottom: 2px;
 }
 
-/* --------------------------------------------------------------------------
-   Main Stage & Messaging (Fixed Scroll)
-   -------------------------------------------------------------------------- */
+
+/* ==========================================================================
+   Main Stage
+   ========================================================================== */
+
 .rag-stage {
     flex: 1;
     display: flex;
     flex-direction: column;
     min-width: 0;
-    min-height: 0; /* CRUCIAL FOR SCROLLING */
+    min-height: 0;
     background: var(--lm-bg-card);
 }
 
@@ -309,11 +486,15 @@
     border-color: var(--lm-primary);
 }
 
-/* Messages Feed Container */
+
+/* ==========================================================================
+   Messages Feed
+   ========================================================================== */
+
 .rag-message-feed {
     flex: 1;
-    min-height: 0; /* Ensures container will not push beyond boundary */
-    overflow-y: auto; /* ENABLES CHAT SCROLLING */
+    min-height: 0;
+    overflow-y: auto;
     padding: 1.25rem 1.5rem;
     display: flex;
     flex-direction: column;
@@ -321,7 +502,11 @@
     scroll-behavior: smooth;
 }
 
-/* Individual Message Layouts */
+
+/* ==========================================================================
+   Individual Messages
+   ========================================================================== */
+
 .rag-msg-row {
     display: flex;
     gap: 0.75rem;
@@ -381,7 +566,11 @@
     border-bottom-left-radius: 2px;
 }
 
-/* Citations & Sources Shelf */
+
+/* ==========================================================================
+   Citations
+   ========================================================================== */
+
 .rag-citations-box {
     margin-top: 0.5rem;
     display: flex;
@@ -406,7 +595,11 @@
     color: var(--lm-primary);
 }
 
-/* Empty State */
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
 .rag-feed-placeholder {
     margin: auto;
     text-align: center;
@@ -464,7 +657,11 @@
     color: var(--lm-primary);
 }
 
-/* Thinking Indicator */
+
+/* ==========================================================================
+   Thinking Indicator
+   ========================================================================== */
+
 .rag-loading-shelf {
     padding: 0 1.5rem 0.5rem;
 }
@@ -481,6 +678,11 @@
     color: var(--lm-text-muted);
 }
 
+
+/* ==========================================================================
+   Error
+   ========================================================================== */
+
 .rag-banner-error {
     background: #fef2f2;
     border: 1px solid #fecaca;
@@ -494,9 +696,11 @@
     gap: 0.5rem;
 }
 
-/* --------------------------------------------------------------------------
+
+/* ==========================================================================
    Composer
-   -------------------------------------------------------------------------- */
+   ========================================================================== */
+
 .rag-composer-tray {
     padding: 0.85rem 1.25rem;
     background: #ffffff;
@@ -512,12 +716,15 @@
     border: 1px solid var(--lm-border);
     border-radius: var(--lm-radius-md);
     padding: 0.45rem 0.65rem;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
 }
 
 .rag-composer-box:focus-within {
     border-color: var(--lm-primary);
-    box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+    box-shadow:
+        0 0 0 2px rgba(30, 64, 175, 0.1);
 }
 
 .rag-textarea {
@@ -568,7 +775,11 @@
     margin-top: 0.35rem;
 }
 
-/* Custom Thin Scrollbars */
+
+/* ==========================================================================
+   Scrollbars
+   ========================================================================== */
+
 .rag-conversation-scrollarea::-webkit-scrollbar,
 .rag-message-feed::-webkit-scrollbar {
     width: 6px;
@@ -580,26 +791,11 @@
     border-radius: 4px;
 }
 
-/* Responsive Rules */
-@media (max-width: 768px) {
-    .rag-sidebar {
-        position: absolute;
-        inset: 0;
-        z-index: 50;
-        width: 100%;
-        display: none;
-    }
-    .rag-sidebar.open {
-        display: flex;
-    }
-    .rag-msg-row {
-        max-width: 95%;
-    }
-}
 
+/* ==========================================================================
+   Markdown
+   ========================================================================== */
 
-
-/* Formatting for Markdown output inside bubbles */
 .rag-bubble p {
     margin-bottom: 0.65rem;
 }
@@ -608,7 +804,7 @@
     margin-bottom: 0;
 }
 
-.rag-bubble ul, 
+.rag-bubble ul,
 .rag-bubble ol {
     margin: 0.5rem 0 0.75rem 1.25rem;
     padding: 0;
@@ -638,4 +834,542 @@
     border-radius: 6px;
     overflow-x: auto;
     margin: 0.5rem 0;
+}
+
+
+/* ==========================================================================
+   Smart Query Guidance
+   ========================================================================== */
+
+.rag-guidance-wrapper {
+    display: flex;
+    width: 100%;
+    padding: 0.35rem 0 0.75rem 0;
+}
+
+.rag-guidance-card {
+    width: min(760px, 92%);
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--lm-primary-border);
+    border-radius: var(--lm-radius-lg);
+    background: var(--lm-primary-soft);
+    box-shadow: var(--lm-shadow-sm);
+}
+
+.rag-guidance-header {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.55rem;
+}
+
+.rag-guidance-icon {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--lm-primary-border);
+    border-radius: 50%;
+    background: #ffffff;
+    color: var(--lm-primary);
+    font-size: 0.8rem;
+}
+
+.rag-guidance-heading {
+    color: var(--lm-text-heading);
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+.rag-guidance-message {
+    margin: 0;
+    color: var(--lm-text-body);
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+
+.rag-guidance-suggestions-label {
+    margin-top: 0.8rem;
+    margin-bottom: 0.45rem;
+    color: var(--lm-text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.rag-guidance-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.rag-guidance-suggestion {
+    border: 1px solid var(--lm-primary-border);
+    border-radius: 999px;
+    padding: 0.42rem 0.7rem;
+    background: #ffffff;
+    color: var(--lm-primary);
+    font: inherit;
+    font-size: 0.74rem;
+    line-height: 1.35;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        background-color 0.15s,
+        border-color 0.15s,
+        transform 0.15s;
+}
+
+.rag-guidance-suggestion:hover {
+    background: var(--lm-primary-soft);
+    border-color: var(--lm-primary);
+    transform: translateY(-1px);
+}
+
+.rag-guidance-suggestion:focus-visible {
+    outline: 2px solid var(--lm-primary);
+    outline-offset: 2px;
+}
+
+
+/* ==========================================================================
+   Custom Conversation Modals
+   ========================================================================== */
+
+body.rag-modal-open {
+    overflow: hidden;
+}
+
+
+/* Modal shell */
+
+.rag-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+        opacity 0.18s ease,
+        visibility 0.18s ease;
+}
+
+.rag-modal.is-open {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+
+/* Backdrop */
+
+.rag-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.48);
+    backdrop-filter: blur(2px);
+}
+
+
+/* Dialog */
+
+.rag-modal-dialog {
+    position: relative;
+    z-index: 1;
+    width: min(440px, 100%);
+    background: #ffffff;
+    border: 1px solid var(--lm-border);
+    border-radius: 14px;
+    box-shadow: var(--lm-shadow-modal);
+    transform: translateY(8px) scale(0.98);
+    transition:
+        transform 0.18s ease;
+}
+
+.rag-modal.is-open .rag-modal-dialog {
+    transform: translateY(0) scale(1);
+}
+
+
+/* Header */
+
+.rag-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.15rem 1.2rem 0.85rem;
+}
+
+.rag-modal-heading-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.rag-modal-icon {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    font-size: 0.9rem;
+}
+
+.rag-modal-icon-primary {
+    background: var(--lm-primary-soft);
+    color: var(--lm-primary);
+    border: 1px solid var(--lm-primary-border);
+}
+
+.rag-modal-header h2 {
+    margin: 0;
+    color: var(--lm-text-heading);
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.rag-modal-header p {
+    margin: 0.2rem 0 0;
+    color: var(--lm-text-muted);
+    font-size: 0.73rem;
+    line-height: 1.4;
+}
+
+
+/* Close button */
+
+.rag-modal-close {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.rag-modal-close:hover {
+    background: var(--lm-bg-subtle);
+    color: var(--lm-text-heading);
+}
+
+.rag-modal-close:focus-visible {
+    outline: 2px solid var(--lm-primary);
+    outline-offset: 1px;
+}
+
+
+/* Body */
+
+.rag-modal-body {
+    padding: 0.65rem 1.2rem 1rem;
+}
+
+.rag-modal-label {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: var(--lm-text-heading);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.rag-modal-input {
+    width: 100%;
+    height: 42px;
+    padding: 0 0.75rem;
+    border: 1px solid var(--lm-border);
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--lm-text-heading);
+    font-size: 0.82rem;
+    outline: none;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.rag-modal-input::placeholder {
+    color: #94a3b8;
+}
+
+.rag-modal-input:focus {
+    border-color: var(--lm-primary);
+    box-shadow:
+        0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.rag-modal-input:disabled {
+    background: var(--lm-bg-subtle);
+    cursor: not-allowed;
+}
+
+.rag-modal-input.is-invalid {
+    border-color: var(--lm-danger);
+    box-shadow:
+        0 0 0 3px rgba(220, 38, 38, 0.08);
+}
+
+.rag-modal-input-footer {
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.35rem;
+    color: var(--lm-text-muted);
+    font-size: 0.68rem;
+}
+
+.rag-modal-validation {
+    color: var(--lm-danger);
+    flex: 1;
+}
+
+
+/* Footer */
+
+.rag-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.2rem 1.15rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+
+/* Buttons */
+
+.rag-modal-btn {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 7px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.rag-modal-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.rag-modal-btn-secondary {
+    border: 1px solid var(--lm-border);
+    background: #ffffff;
+    color: var(--lm-text-body);
+}
+
+.rag-modal-btn-secondary:hover {
+    background: var(--lm-bg-subtle);
+    border-color: var(--lm-border-hover);
+}
+
+.rag-modal-btn-primary {
+    border: 1px solid var(--lm-primary);
+    background: var(--lm-primary);
+    color: #ffffff;
+}
+
+.rag-modal-btn-primary:hover:not(:disabled) {
+    background: var(--lm-primary-hover);
+}
+
+.rag-modal-btn-danger {
+    border: 1px solid var(--lm-danger);
+    background: var(--lm-danger);
+    color: #ffffff;
+}
+
+.rag-modal-btn-danger:hover:not(:disabled) {
+    background: var(--lm-danger-hover);
+}
+
+
+/* ==========================================================================
+   Delete Modal
+   ========================================================================== */
+
+.rag-delete-modal-dialog {
+    width: min(410px, 100%);
+}
+
+.rag-delete-modal-content {
+    position: relative;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.rag-delete-close {
+    position: absolute;
+    top: 0.85rem;
+    right: 0.85rem;
+}
+
+.rag-delete-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--lm-danger-soft);
+    border: 1px solid var(--lm-danger-border);
+    color: var(--lm-danger);
+    font-size: 1rem;
+}
+
+.rag-delete-modal-content h2 {
+    margin: 0;
+    color: var(--lm-text-heading);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.rag-delete-description {
+    max-width: 330px;
+    margin: 0.55rem auto 1rem;
+    color: var(--lm-text-muted);
+    font-size: 0.75rem;
+    line-height: 1.55;
+}
+
+.rag-delete-conversation-preview {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    max-width: 100%;
+    padding: 0.65rem 0.75rem;
+    margin-bottom: 1.15rem;
+    text-align: left;
+    border: 1px solid var(--lm-border);
+    background: var(--lm-bg-subtle);
+    border-radius: 8px;
+    color: var(--lm-text-body);
+    font-size: 0.76rem;
+}
+
+.rag-delete-conversation-preview i {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: #ffffff;
+    border: 1px solid var(--lm-border);
+    color: var(--lm-text-muted);
+}
+
+.rag-delete-conversation-preview span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-weight: 600;
+}
+
+.rag-delete-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 768px) {
+
+    .rag-sidebar {
+        position: absolute;
+        inset: 0;
+        z-index: 50;
+        width: 100%;
+        display: none;
+    }
+
+    .rag-sidebar.open {
+        display: flex;
+    }
+
+    .rag-msg-row {
+        max-width: 95%;
+    }
+
+    .rag-guidance-card {
+        width: 100%;
+    }
+
+    .rag-guidance-suggestions {
+        flex-direction: column;
+    }
+
+    .rag-guidance-suggestion {
+        width: 100%;
+    }
+
+    .rag-conversation-actions-button {
+        opacity: 1;
+    }
+
+    .rag-conversation-actions-menu {
+        right: 0;
+    }
+
+    .rag-modal {
+        padding: 0.75rem;
+    }
+
+    .rag-modal-header {
+        padding: 1rem 1rem 0.75rem;
+    }
+
+    .rag-modal-body {
+        padding: 0.55rem 1rem 0.9rem;
+    }
+
+    .rag-modal-footer {
+        padding: 0.75rem 1rem 1rem;
+    }
+
+    .rag-delete-modal-content {
+        padding: 1.25rem;
+    }
+
+    .rag-delete-actions {
+        flex-direction: column-reverse;
+    }
+
+    .rag-delete-actions
+    .rag-modal-btn {
+        width: 100%;
+    }
 }

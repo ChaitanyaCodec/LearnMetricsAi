@@ -13,6 +13,43 @@ class DocumentProcessingError(Exception):
     pass
 
 
+def _build_page_ranges(extraction_result):
+    """
+    Build character ranges that map extracted text positions
+    back to their original page numbers.
+
+    Each tuple contains:
+
+        (start_character, end_character, page_number)
+    """
+    if not extraction_result.pages:
+        return []
+
+    page_ranges = []
+    current_position = 0
+
+    for page in extraction_result.pages:
+        page_text = page.text.strip()
+
+        if not page_text:
+            continue
+
+        start = current_position
+        end = start + len(page_text)
+
+        page_ranges.append(
+            (
+                start,
+                end,
+                page.page_number,
+            )
+        )
+
+        current_position = end + 2  # "\n\n" separator
+
+    return page_ranges
+
+
 def _start_processing(document_version_id):
     with transaction.atomic():
         document_version = (
@@ -75,7 +112,14 @@ def process_document_version(document_version_id):
             document_version
         )
 
-        chunks = chunk_text(extraction_result.text)
+        page_ranges = _build_page_ranges(
+            extraction_result
+        )
+
+        chunks = chunk_text(
+            extraction_result.text,
+            page_ranges=page_ranges,
+        )
 
         with transaction.atomic():
             locked_version = (
@@ -96,6 +140,7 @@ def process_document_version(document_version_id):
                         content=chunk.content,
                         character_start=chunk.character_start,
                         character_end=chunk.character_end,
+                        page_number=chunk.page_number,
                         metadata={},
                     )
                     for chunk in chunks

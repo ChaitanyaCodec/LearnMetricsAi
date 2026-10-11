@@ -1,25 +1,52 @@
 {% extends "base/dashboard_base.html" %}
-
-{% block title %}
-Student Dashboard
-{% endblock %}
-
-{% block navbar_title %}
-Student Dashboard
-{% endblock %}
-
+{% load static %}
+{% block title %}Student Dashboard | LearnMetrics AI{% endblock %}
+{% block navbar_title %}Student Dashboard{% endblock %}
+{% block navbar_subtitle %}Your learning space{% endblock %}
 {% block content %}
-<div class="row g-3 mb-4">
-    <div class="col-md-12">
-        <a
-            href="{% url 'documents:list' %}"
-            class="btn btn-primary w-100 py-3"
-        >
-            <i class="fa-solid fa-book-open me-2"></i>
-            Browse Approved Documents
-        </a>
+<section class="dashboard-hero mb-4">
+  <div class="hero-content">
+    <span class="hero-badge"><i class="fa-solid fa-graduation-cap me-1"></i> LearnMetrics AI · Student</span>
+    <h1>Welcome back, {{ request.user.first_name|default:request.user.email }} 👋</h1>
+    <p>Explore approved learning resources and use your AI Study Assistant to understand difficult topics.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{% url 'documents:list' %}"><i class="fa-solid fa-book-open me-2"></i>Browse Learning Materials</a>
+      <a class="btn btn-outline-primary" href="{% url 'rag:student-chat' %}"><i class="fa-solid fa-robot me-2"></i>AI Study Assistant</a>
     </div>
-</div>
-<h2>Student Dashboard</h2>
+  </div>
+  <div class="hero-illustration"><div class="hero-circle"><i class="fa-solid fa-user-graduate"></i></div></div>
+</section>
 
+<div class="row g-4 mb-4">
+  <div class="col-xl-4 col-md-6"><div class="kpi-card"><div class="kpi-content"><span class="kpi-label">Active Enrollments</span><h2 class="kpi-value">{{ dashboard.active_enrollments }}</h2><span class="kpi-change text-muted">Live data</span></div><div class="kpi-icon"><i class="fa-solid fa-graduation-cap"></i></div></div></div>
+  <div class="col-xl-4 col-md-6"><div class="kpi-card"><div class="kpi-content"><span class="kpi-label">Enrolled Subjects</span><h2 class="kpi-value">{{ dashboard.enrolled_subjects }}</h2><span class="kpi-change text-muted">Live data</span></div><div class="kpi-icon"><i class="fa-solid fa-book"></i></div></div></div>
+  <div class="col-xl-4 col-md-6"><div class="kpi-card"><div class="kpi-content"><span class="kpi-label">Available Materials</span><h2 class="kpi-value">{{ dashboard.available_materials }}</h2><span class="kpi-change text-muted">Approved and processed</span></div><div class="kpi-icon"><i class="fa-solid fa-file-lines"></i></div></div></div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-5"><div class="card-custom h-100">
+    <div class="card-header-custom"><h5 class="card-title mb-0">My Enrollments</h5></div><div class="card-body-custom">
+    {% if dashboard.enrollments %}<div class="list-group list-group-flush">{% for enrollment in dashboard.enrollments %}
+      <div class="list-group-item px-0"><strong>{{ enrollment.course.name }}</strong><br><small class="text-muted">{{ enrollment.semester.name }} · {{ enrollment.academic_year }}</small><div class="mt-1"><span class="badge bg-success-subtle text-success">{{ enrollment.get_status_display }}</span></div></div>
+    {% endfor %}</div>{% else %}<div class="text-center py-4"><i class="fa-solid fa-graduation-cap fa-2x text-muted mb-3"></i><h6>No active enrollments</h6><p class="text-muted">Contact your administrator if your current enrollment is missing.</p></div>{% endif %}
+    </div></div></div>
+  <div class="col-lg-7"><div class="card-custom h-100">
+    <div class="card-header-custom d-flex justify-content-between align-items-center"><h5 class="card-title mb-0">Available Learning Materials</h5><span class="badge bg-success-subtle text-success">Live data</span></div><div class="card-body-custom p-0">
+    {% if dashboard.recent_materials %}<div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Material</th><th>Subject</th><th>Updated</th></tr></thead><tbody>
+    {% for document in dashboard.recent_materials %}<tr><td><strong>{{ document.title }}</strong><br><small class="text-muted">{{ document.description|default:"Published material"|truncatechars:70 }}</small></td><td>{{ document.subject.name }}</td><td>{{ document.updated_at|date:"d M Y" }}</td></tr>{% endfor %}
+    </tbody></table></div>{% else %}<div class="text-center py-4"><p class="text-muted mb-0">No approved, published and processed materials are available for your active enrollments yet.</p></div>{% endif %}
+    </div></div></div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-6"><div class="card-custom h-100"><div class="card-header-custom"><h5 class="card-title mb-0">AI Study Assistant</h5></div><div class="card-body-custom"><p class="text-muted">Ask questions grounded in learning materials available to you.</p><a href="{% url 'rag:student-chat' %}" class="btn btn-primary"><i class="fa-solid fa-robot me-2"></i>Start Learning</a></div></div></div>
+  <div class="col-md-6"><div class="card-custom h-100"><div class="card-header-custom"><h5 class="card-title mb-0">Browse Materials</h5></div><div class="card-body-custom"><p class="text-muted">Find published notes and documents for your enrolled subjects.</p><a href="{% url 'documents:list' %}" class="btn btn-outline-primary"><i class="fa-solid fa-book-open me-2"></i>Browse Resources</a></div></div></div>
+</div>
+
+<div class="card-custom">
+  <div class="card-header-custom d-flex justify-content-between align-items-center"><h5 class="card-title mb-0">Coming Soon · My Learning Insights</h5><span class="badge bg-warning text-dark">DEMO DATA</span></div>
+  <div class="card-body-custom"><p class="text-muted">The examples below are placeholders, not your actual academic results. They will be replaced by live data when attendance, assignments, grades and study planning are implemented.</p>
+    <div class="row g-3">{% for item in dashboard.demo_features %}<div class="col-xl-3 col-md-6"><div class="border rounded-3 p-3 h-100"><small class="text-muted">{{ item.title }}</small><h4 class="my-2">{{ item.value }}</h4><span class="badge bg-warning-subtle text-dark mb-2">Demo only</span><p class="small text-muted mb-0">{{ item.description }}</p></div></div>{% endfor %}</div>
+  </div>
+</div>
 {% endblock %}

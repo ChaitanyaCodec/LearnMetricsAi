@@ -4,7 +4,7 @@
 {% block title %}AI Teaching Assistant | LearnMetrics AI{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/rag-chat.css' %}">
+<link rel="stylesheet" href="{% static 'css/rag-chat.css' %}?v=2.1">
 {% endblock %}
 
 {% block content %}
@@ -13,162 +13,487 @@
     <!-- TOP NAV / PAGE TITLE -->
     <header class="rag-chat-topbar">
         <div class="rag-topbar-left">
-            <button type="button" id="sidebar-toggle" class="btn-icon d-md-none" aria-label="Toggle History">
+
+            <button
+                type="button"
+                id="sidebar-toggle"
+                class="btn-icon d-md-none"
+                aria-label="Toggle History"
+            >
                 <i class="fa-solid fa-bars"></i>
             </button>
+
             <div class="rag-brand-badge">
                 <i class="fa-solid fa-graduation-cap"></i>
             </div>
+
             <div>
                 <h1 class="rag-page-title">AI Academic Assistant</h1>
-                <span class="rag-page-subtitle">Verified study materials intelligence engine</span>
+                <span class="rag-page-subtitle">
+                    Verified study materials intelligence engine
+                </span>
             </div>
         </div>
+
         <div class="rag-topbar-right">
-            <button type="button" id="new-chat-button" class="btn btn-primary btn-sm rag-btn-primary">
-                <i class="fa-solid fa-plus me-1"></i> New Session
+            <button
+                type="button"
+                id="new-chat-button"
+                class="btn btn-primary btn-sm rag-btn-primary"
+            >
+                <i class="fa-solid fa-plus me-1"></i>
+                New Session
             </button>
         </div>
     </header>
+
 
     <!-- CORE WORKSPACE -->
     <div class="rag-workspace" id="rag-workspace">
 
         <!-- CONVERSATIONS SIDEBAR -->
         <aside class="rag-sidebar" id="rag-sidebar">
+
             <div class="rag-sidebar-header">
-                <span class="rag-sidebar-heading">Conversations</span>
-                <button type="button" id="new-chat-sidebar-button" class="btn-icon-subtle" title="New Session">
-                    <i class="fa-solid fa-pen-to-square"></i>
+                <span class="rag-sidebar-heading">
+                    Conversations
+                </span>
+
+                <button
+                    type="button"
+                    id="new-chat-sidebar-button"
+                    class="btn-icon-subtle"
+                    title="New Session"
+                    aria-label="Start new conversation"
+                >
+                    <i class="fa-regular fa-pen-to-square"></i>
                 </button>
             </div>
 
+
             <!-- SCROLLABLE CONVERSATION LIST -->
-            <div id="conversation-list" class="rag-conversation-scrollarea">
-                <div id="conversation-empty-state" class="rag-empty-sidebar">
+            <div
+                id="conversation-list"
+                class="rag-conversation-scrollarea"
+            >
+                <div
+                    id="conversation-empty-state"
+                    class="rag-empty-sidebar"
+                >
                     <i class="fa-regular fa-message"></i>
+
                     <p>No previous sessions</p>
-                    <small>Start a chat to review topics</small>
+
+                    <small>
+                        Start a chat to review topics
+                    </small>
                 </div>
             </div>
+
         </aside>
+
 
         <!-- MAIN INTERACTION AREA -->
         <main class="rag-stage">
 
-            <!-- STAGE HEADER WITH INLINE SUBJECT PICKER -->
+            <!-- STAGE HEADER -->
             <div class="rag-stage-header">
+
                 <div class="rag-stage-context">
+
                     <div class="rag-status-indicator"></div>
+
                     <div class="rag-stage-meta">
-                        <span id="active-conversation-title" class="rag-active-title">New Conversation</span>
+
+                        <span
+                            id="active-conversation-title"
+                            class="rag-active-title"
+                        >
+                            New Conversation
+                        </span>
+
                         <div class="rag-subject-group">
-                            <label for="subject-select" class="rag-subject-label">Subject:</label>
-                            <select id="subject-select" class="rag-subject-select">
-                                <option value="">Choose academic subject...</option>
+
+                            <label
+                                for="subject-select"
+                                class="rag-subject-label"
+                            >
+                                Subject:
+                            </label>
+
+                            <select
+                                id="subject-select"
+                                class="rag-subject-select"
+                            >
+                                <option value="">
+                                    Choose academic subject...
+                                </option>
+
                                 {% for subject in subjects %}
                                     <option value="{{ subject.id }}">
                                         {{ subject.name }}{% if subject.code %} ({{ subject.code }}){% endif %}
                                     </option>
                                 {% empty %}
-                                    <option value="" disabled>No subjects assigned</option>
+                                    <option value="" disabled>
+                                        No subjects assigned
+                                    </option>
                                 {% endfor %}
+
                             </select>
+
                         </div>
+
                     </div>
                 </div>
+
             </div>
 
-            <!-- CHAT MESSAGES (FIXED SCROLL CONTAINER) -->
-            <div id="chat-messages" class="rag-message-feed">
+
+            <!-- CHAT MESSAGES -->
+            <div
+                id="chat-messages"
+                class="rag-message-feed"
+            >
+
                 <!-- EMPTY STATE -->
-                <div id="chat-empty-state" class="rag-feed-placeholder">
+                <div
+                    id="chat-empty-state"
+                    class="rag-feed-placeholder"
+                >
+
                     <div class="rag-placeholder-icon">
                         <i class="fa-solid fa-book-bookmark"></i>
                     </div>
-                    <h2>How can I assist your study session?</h2>
-                    <p>Select your subject and ask any specific inquiry against your syllabus.</p>
+
+                    <h2>
+                        How can I assist your study session?
+                    </h2>
+
+                    <p>
+                        Select your subject and ask any specific inquiry
+                        against your syllabus.
+                    </p>
 
                     <div class="rag-prompt-suggestions">
-                        <button type="button" class="rag-prompt-pill" data-prompt="Summarize key formulas and definitions from this subject.">
-                            <i class="fa-regular fa-lightbulb"></i> Summarize formulas & definitions
+
+                        <button
+                            type="button"
+                            class="rag-prompt-pill"
+                            data-prompt="Summarize key formulas and definitions from this subject."
+                        >
+                            <i class="fa-regular fa-lightbulb"></i>
+                            Summarize formulas &amp; definitions
                         </button>
-                        <button type="button" class="rag-prompt-pill" data-prompt="What are the recurring questions or critical topics in this course?">
-                            <i class="fa-solid fa-list-check"></i> High-frequency exam topics
+
+                        <button
+                            type="button"
+                            class="rag-prompt-pill"
+                            data-prompt="What are the recurring questions or critical topics in this course?"
+                        >
+                            <i class="fa-solid fa-list-check"></i>
+                            High-frequency exam topics
                         </button>
-                        <button type="button" class="rag-prompt-pill" data-prompt="Explain the most complex concept from the recent modules.">
-                            <i class="fa-solid fa-graduation-cap"></i> Clarify difficult concepts
+
+                        <button
+                            type="button"
+                            class="rag-prompt-pill"
+                            data-prompt="Explain the most complex concept from the recent modules."
+                        >
+                            <i class="fa-solid fa-graduation-cap"></i>
+                            Clarify difficult concepts
                         </button>
+
                     </div>
                 </div>
+
             </div>
 
+
             <!-- THINKING INDICATOR -->
-            <div id="chat-loading" class="rag-loading-shelf d-none">
+            <div
+                id="chat-loading"
+                class="rag-loading-shelf d-none"
+            >
                 <div class="rag-thinking-card">
+
                     <i class="fa-solid fa-circle-notch fa-spin text-primary"></i>
-                    <span>Reviewing verified materials...</span>
+
+                    <span>
+                        Reviewing verified materials...
+                    </span>
+
                 </div>
             </div>
 
+
             <!-- ERROR ALERT -->
-            <div id="chat-error" class="rag-banner-error d-none" role="alert">
+            <div
+                id="chat-error"
+                class="rag-banner-error d-none"
+                role="alert"
+            >
                 <i class="fa-solid fa-triangle-exclamation"></i>
-                <div id="chat-error-message" class="rag-error-text"></div>
+
+                <div
+                    id="chat-error-message"
+                    class="rag-error-text"
+                ></div>
             </div>
 
-            <!-- COMPOSER AREA -->
+
+            <!-- COMPOSER -->
             <div class="rag-composer-tray">
+
                 <div class="rag-composer-box">
+
                     <textarea
                         id="chat-input"
                         class="rag-textarea"
                         rows="1"
                         maxlength="5000"
                         placeholder="Type your academic inquiry here... (Enter to send, Shift+Enter for new line)"
-                        aria-label="Ask your question"></textarea>
+                        aria-label="Ask your question"
+                    ></textarea>
 
-                    <button type="button" id="send-message-button" class="rag-send-btn" disabled aria-label="Send inquiry">
+                    <button
+                        type="button"
+                        id="send-message-button"
+                        class="rag-send-btn"
+                        disabled
+                        aria-label="Send inquiry"
+                    >
                         <i class="fa-solid fa-arrow-up"></i>
                     </button>
+
                 </div>
 
                 <div class="rag-composer-footer">
-                    <span><i class="fa-solid fa-shield-check me-1"></i> Responses grounded strictly in syllabus docs</span>
-                    <span id="character-count">0 / 5000</span>
+
+                    <span>
+                        <i class="fa-solid fa-shield-check me-1"></i>
+                        Responses grounded strictly in syllabus docs
+                    </span>
+
+                    <span id="character-count">
+                        0 / 5000
+                    </span>
+
                 </div>
+
             </div>
 
         </main>
+
     </div>
 </div>
 
-<!-- DELETE CONFIRMATION MODAL -->
-<div class="modal fade" id="deleteChatModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content rag-modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h6 class="modal-title fw-bold" id="deleteModalLabel">Delete Thread?</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+<!-- ==========================================================
+     RENAME CONVERSATION MODAL
+     ========================================================== -->
+
+<div
+    id="renameChatModal"
+    class="rag-modal"
+    aria-hidden="true"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="renameModalTitle"
+>
+    <div class="rag-modal-backdrop" data-modal-close="rename"></div>
+
+    <div class="rag-modal-dialog">
+
+        <div class="rag-modal-header">
+
+            <div class="rag-modal-heading-group">
+
+                <div class="rag-modal-icon rag-modal-icon-primary">
+                    <i class="fa-regular fa-pen-to-square"></i>
+                </div>
+
+                <div>
+                    <h2 id="renameModalTitle">
+                        Rename conversation
+                    </h2>
+
+                    <p>
+                        Give this study session a clear name.
+                    </p>
+                </div>
+
             </div>
-            <div class="modal-body text-muted small py-2">
-                This action cannot be reversed. This entire conversation will be permanently removed.
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" id="confirm-delete-btn" class="btn btn-sm btn-danger">Delete</button>
-            </div>
+
+            <button
+                type="button"
+                class="rag-modal-close"
+                data-modal-close="rename"
+                aria-label="Close rename dialog"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
         </div>
+
+
+        <form id="rename-conversation-form">
+
+            <div class="rag-modal-body">
+
+                <label
+                    for="rename-conversation-input"
+                    class="rag-modal-label"
+                >
+                    Conversation name
+                </label>
+
+                <input
+                    type="text"
+                    id="rename-conversation-input"
+                    class="rag-modal-input"
+                    maxlength="120"
+                    autocomplete="off"
+                    placeholder="e.g. Big Data Important Topics"
+                >
+
+                <div class="rag-modal-input-footer">
+
+                    <span
+                        id="rename-conversation-error"
+                        class="rag-modal-validation"
+                    ></span>
+
+                    <span id="rename-character-count">
+                        0 / 120
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="rag-modal-footer">
+
+                <button
+                    type="button"
+                    class="rag-modal-btn rag-modal-btn-secondary"
+                    data-modal-close="rename"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    id="save-rename-btn"
+                    class="rag-modal-btn rag-modal-btn-primary"
+                >
+                    <i class="fa-solid fa-check"></i>
+                    <span>Save changes</span>
+                </button>
+
+            </div>
+
+        </form>
+
     </div>
 </div>
+
+
+<!-- ==========================================================
+     DELETE CONVERSATION MODAL
+     ========================================================== -->
+
+<div
+    id="deleteChatModal"
+    class="rag-modal"
+    aria-hidden="true"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="deleteModalTitle"
+>
+    <div class="rag-modal-backdrop" data-modal-close="delete"></div>
+
+    <div class="rag-modal-dialog rag-delete-modal-dialog">
+
+        <div class="rag-delete-modal-content">
+
+            <button
+                type="button"
+                class="rag-modal-close rag-delete-close"
+                data-modal-close="delete"
+                aria-label="Close delete dialog"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+
+            <div class="rag-delete-icon">
+
+                <i class="fa-regular fa-trash-can"></i>
+
+            </div>
+
+
+            <h2 id="deleteModalTitle">
+                Delete conversation?
+            </h2>
+
+            <p class="rag-delete-description">
+                This conversation will be removed from your chat history.
+                Your study materials, documents, chunks, and embeddings
+                will not be affected.
+            </p>
+
+
+            <div class="rag-delete-conversation-preview">
+
+                <i class="fa-regular fa-comments"></i>
+
+                <span id="delete-conversation-title">
+                    Study Session
+                </span>
+
+            </div>
+
+
+            <div class="rag-delete-actions">
+
+                <button
+                    type="button"
+                    class="rag-modal-btn rag-modal-btn-secondary"
+                    data-modal-close="delete"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    id="confirm-delete-btn"
+                    class="rag-modal-btn rag-modal-btn-danger"
+                >
+                    <i class="fa-regular fa-trash-can"></i>
+                    <span>Delete conversation</span>
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
 {% endblock %}
 
 
 {% block extra_js %}
+
 <!-- Markdown Parser & HTML Sanitizer -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
-<!-- Your Custom Chat Script -->
-<script src="{% static 'js/rag-chat.js' %}"></script>
+<!-- RAG Chat Script -->
+<script src="{% static 'js/rag-chat.js' %}?v=2.1"></script>
+
 {% endblock %}

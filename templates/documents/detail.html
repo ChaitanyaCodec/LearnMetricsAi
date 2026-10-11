@@ -105,6 +105,22 @@
 
                                         <td>
 
+                                            {% with filename=version.original_filename|lower %}
+                                                {% if filename|slice:"-4:" == ".pdf" or filename|slice:"-4:" == ".png" or filename|slice:"-4:" == ".jpg" or filename|slice:"-5:" == ".jpeg" or filename|slice:"-5:" == ".webp" or filename|slice:"-4:" == ".gif" or filename|slice:"-4:" == ".txt" %}
+                                                    <a
+                                                        class="btn btn-sm btn-outline-success me-1"
+                                                        href="{% url 'documents:document-version-preview' document.id version.id %}"
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                    >
+                                                        <i class="fa-solid fa-eye"></i>
+                                                        Preview
+                                                    </a>
+                                                {% else %}
+                                                    <span class="badge bg-secondary me-1" title="Browser preview is not supported for this file type">Preview unavailable</span>
+                                                {% endif %}
+                                            {% endwith %}
+
                                             <a
                                                 class="btn btn-sm btn-outline-primary"
                                                 href="{% url 'documents:document-version-download' document.id version.id %}"
