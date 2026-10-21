@@ -263,3 +263,41 @@ class DocumentChunk(BaseModel):
             f"{self.document_version} "
             f"- chunk {self.chunk_index}"
         )
+
+class DocumentViewEvent(models.Model):
+    """An authenticated student opening of a published document version."""
+
+    class EventType(models.TextChoices):
+        PREVIEW = "PREVIEW", "Preview"
+        DOWNLOAD = "DOWNLOAD", "Download"
+
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name="view_events",
+    )
+    document_version = models.ForeignKey(
+        DocumentVersion,
+        on_delete=models.CASCADE,
+        related_name="view_events",
+    )
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="document_view_events",
+        limit_choices_to={"role": "STUDENT"},
+    )
+    event_type = models.CharField(max_length=10, choices=EventType.choices)
+    viewed_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-viewed_at"]
+        indexes = [
+            models.Index(fields=["document", "event_type", "viewed_at"], name="documents_d_documen_98ad51_idx"),
+            models.Index(fields=["document", "student"], name="documents_d_documen_3c8a65_idx"),
+        ]
+        verbose_name = "Document view event"
+        verbose_name_plural = "Document view events"
+
+    def __str__(self):
+        return f"{self.student} {self.event_type.lower()}ed {self.document}"

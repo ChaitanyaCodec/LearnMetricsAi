@@ -21,6 +21,7 @@ from .models import (
 
     Document,
     DocumentVersion,
+    DocumentViewEvent,
 )
 from .permissions import (
     can_manage_document,
@@ -106,6 +107,27 @@ def run_processing(version):
     except Exception:
         version.refresh_from_db()
         return version, False
+
+def record_student_document_event(request, document, version, event_type):
+    """Record successful access events for students only, never staff previews."""
+    if (
+        request.user.is_authenticated
+        and request.user.is_active
+        and request.user.role == User.Roles.STUDENT
+        and document.status == Document.Status.APPROVED
+        and document.is_active
+        and document.published_version_id == version.id
+        and version.is_active
+        and version.review_status == DocumentVersion.ReviewStatus.APPROVED
+        and version.processing_status == DocumentVersion.ProcessingStatus.COMPLETED
+    ):
+        DocumentViewEvent.objects.create(
+            document=document,
+            document_version=version,
+            student=request.user,
+            event_type=event_type,
+        )
+
 
 class DocumentListView(
     LoginRequiredMixin,
@@ -458,8 +480,12 @@ class DocumentVersionDownloadAPIView(
                 status=404,
             )
 
+        file_handle = version.source_file.open("rb")
+        record_student_document_event(
+            request, document, version, DocumentViewEvent.EventType.DOWNLOAD
+        )
         return FileResponse(
-            version.source_file.open("rb"),
+            file_handle,
             as_attachment=True,
             filename=version.original_filename,
         )
@@ -854,8 +880,12 @@ class DocumentVersionPreviewView(LoginRequiredMixin, View):
             )
 
         safe_filename = version.original_filename.replace('"', "")
+        file_handle = version.source_file.open("rb")
+        record_student_document_event(
+            request, document, version, DocumentViewEvent.EventType.PREVIEW
+        )
         response = FileResponse(
-            version.source_file.open("rb"),
+            file_handle,
             as_attachment=False,
             filename=safe_filename,
             content_type=content_type,

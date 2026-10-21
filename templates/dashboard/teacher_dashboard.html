@@ -48,6 +48,38 @@
 </div>
 
 <div class="card-custom mb-4">
+  <div class="card-header-custom d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h5 class="card-title mb-0"><i class="fa-solid fa-chart-column me-2"></i>Published Document Engagement</h5>
+    <span class="badge bg-primary-subtle text-primary">Live tracking</span>
+  </div>
+  <div class="card-body-custom">
+    <p class="text-muted small">Preview and download events are counted separately. Unique students are counted once per document, regardless of repeat activity.</p>
+    <div class="row g-3 mb-4">
+      <div class="col-md-3"><div class="border rounded-3 p-3 h-100"><small class="text-muted">Published documents</small><h3 class="mb-0">{{ document_engagement_totals.documents }}</h3></div></div>
+      <div class="col-md-3"><div class="border rounded-3 p-3 h-100"><small class="text-muted">Preview events</small><h3 class="mb-0">{{ document_engagement_totals.previews }}</h3></div></div>
+      <div class="col-md-3"><div class="border rounded-3 p-3 h-100"><small class="text-muted">Download events</small><h3 class="mb-0">{{ document_engagement_totals.downloads }}</h3></div></div>
+      <div class="col-md-3"><div class="border rounded-3 p-3 h-100"><small class="text-muted">Students reached</small><h3 class="mb-0">{{ document_engagement_totals.students_reached }}</h3></div></div>
+    </div>
+    {% if document_engagement_rows %}
+    <div class="table-responsive"><table class="table table-hover align-middle">
+      <thead><tr><th>Document</th><th>Subject</th><th>Previews</th><th>Downloads</th><th>Unique students</th><th>Last activity</th><th>Student details</th></tr></thead>
+      <tbody>{% for row in document_engagement_rows %}
+        <tr>
+          <td><strong>{{ row.document.title }}</strong></td><td>{{ row.document.subject.name }}</td>
+          <td>{{ row.preview_count }}</td><td>{{ row.download_count }}</td><td>{{ row.unique_students }}</td>
+          <td>{% if row.last_viewed_at %}{{ row.last_viewed_at|date:"d M Y, H:i" }}{% else %}<span class="text-muted">No activity</span>{% endif %}</td>
+          <td><details><summary class="text-primary">View students</summary>
+            {% if row.student_events %}<div class="mt-2"><ul class="list-unstyled mb-0">{% for event in row.student_events %}<li class="border-bottom py-2"><strong>{{ event.student.full_name|default:event.student.email }}</strong><br><small class="text-muted">Last activity: {{ event.viewed_at|date:"d M Y, H:i" }} · {{ event.get_event_type_display }}</small></li>{% endfor %}</ul></div>
+            {% else %}<small class="text-muted d-block mt-2">No student views recorded yet.</small>{% endif %}
+          </details></td>
+        </tr>
+      {% endfor %}</tbody>
+    </table></div>
+    {% else %}<div class="text-center py-4"><i class="fa-solid fa-chart-line fa-2x text-muted mb-3"></i><p class="text-muted mb-0">No approved, published documents are available for engagement tracking yet.</p></div>{% endif %}
+  </div>
+</div>
+
+<div class="card-custom mb-4">
   <div class="card-header-custom d-flex justify-content-between align-items-center"><h5 class="card-title mb-0">Recently Created Materials</h5><span class="badge bg-success-subtle text-success">Live data</span></div>
   <div class="card-body-custom p-0">
   {% if dashboard.recent_documents %}<div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Document</th><th>Subject</th><th>Status</th><th>Updated</th></tr></thead><tbody>
