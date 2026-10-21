@@ -39,3 +39,7 @@ Thumbs.db
 # Migrations (optional - keep only __init__.py if desired)
 # */migrations/*
 # !*/migrations/__init__.py
+
+#backups
+.env.backup-before-supabase
+learnmetrics_backup.dump

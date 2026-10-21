@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("loginForm");
     const togglePasswordBtn = document.querySelector(".toggle-password");
+    const passwordInput = document.getElementById("password-field");
     
     // Toggle Password Visibility
     if (togglePasswordBtn && passwordInput) {

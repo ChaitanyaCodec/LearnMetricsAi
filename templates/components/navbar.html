@@ -49,36 +49,13 @@
 
         <!-- Search -->
 
-        <div class="search-box">
-
-            <i class="fa-solid fa-magnifying-glass"></i>
-
-            <input
-                type="text"
-                placeholder="Search..."
-                disabled>
-
+        <div class="search-box universal-search" data-search-url="{% url 'dashboard:search' %}">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input type="search" id="universalSearchInput" placeholder="Search students, subjects, documents..."
+                   autocomplete="off" aria-label="Search LearnMetrics AI" aria-controls="universalSearchResults"
+                   aria-expanded="false">
+            <div id="universalSearchResults" class="universal-search-results" role="listbox" hidden></div>
         </div>
-
-        <!-- Notifications -->
-
-        <button
-            type="button"
-            class="icon-button">
-
-            <i class="fa-regular fa-bell"></i>
-
-        </button>
-
-        <!-- Messages -->
-
-        <button
-            type="button"
-            class="icon-button">
-
-            <i class="fa-regular fa-envelope"></i>
-
-        </button>
 
         <!-- User Dropdown -->
 
@@ -145,32 +122,6 @@
                         {{ request.user.email }}
 
                     </span>
-
-                </li>
-
-                <li><hr class="dropdown-divider"></li>
-
-                <li>
-
-                    <a class="dropdown-item" href="#">
-
-                        <i class="fa-regular fa-user me-2"></i>
-
-                        Profile
-
-                    </a>
-
-                </li>
-
-                <li>
-
-                    <a class="dropdown-item" href="#">
-
-                        <i class="fa-solid fa-gear me-2"></i>
-
-                        Settings
-
-                    </a>
 
                 </li>
 

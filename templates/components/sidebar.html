@@ -82,17 +82,6 @@
 {% if request.user.role == "ADMIN" %}
     <li class="nav-item">
         <a
-            href="{% url 'students:dashboard' %}"
-            class="nav-link"
-        >
-           <i class="fa-solid fa-user-graduate"></i>
-            <span>Students</span>
-        </a>
-    </li>
-{% endif %}
-{% if request.user.role == "ADMIN" %}
-    <li class="nav-item">
-        <a
             href="{% url 'documents:review-queue' %}"
             class="nav-link"
         >
@@ -101,7 +90,14 @@
         </a>
     </li>
 {% endif %}
-{% if request.user.role == "TEACHER" %}
+{% if request.user.role == "ADMIN" %}
+            <li class="nav-item">
+                <a href="{% url 'rag:student-chat' %}" class="nav-link">
+                    <i class="fa-solid fa-robot"></i>
+                    <span>Admin AI Assistant</span>
+                </a>
+            </li>
+{% elif request.user.role == "TEACHER" %}
             <li class="nav-item">
                 <a href="{% url 'rag:teacher:chat' %}" class="nav-link">
                     <i class="fa-solid fa-robot"></i>
@@ -124,57 +120,9 @@
             </li>
 {% endif %}
 
-            <li class="nav-item">
 
-                <a href="#"
-                   class="nav-link">
 
-                    <i class="fa-solid fa-chart-line"></i>
 
-                    <span>Analytics</span>
-
-                </a>
-
-            </li>
-
-            <li class="nav-item">
-
-                <a href="#"
-                   class="nav-link">
-
-                    <i class="fa-solid fa-file-lines"></i>
-
-                    <span>Reports</span>
-
-                </a>
-
-            </li>
-
-            <li class="nav-item">
-
-                <a href="#"
-                   class="nav-link">
-
-                    <i class="fa-solid fa-bell"></i>
-
-                    <span>Notifications</span>
-
-                </a>
-
-            </li>
-
-            <li class="nav-item">
-
-                <a href="#"
-                   class="nav-link">
-
-                    <i class="fa-solid fa-gear"></i>
-
-                    <span>Settings</span>
-
-                </a>
-
-            </li>
 
         </ul>
 

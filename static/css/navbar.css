@@ -394,3 +394,12 @@
     }
 
 }
+
+/* Universal search */
+.universal-search { position: relative; }
+.universal-search input:disabled { cursor: text; }
+.universal-search-results { position: absolute; top: calc(100% + 8px); right: 0; z-index: 1050; width: min(420px, 82vw); max-height: 360px; overflow-y: auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 12px 32px rgba(15, 23, 42, .14); padding: 6px; }
+.universal-search-result { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: 8px; color: #1f2937; text-decoration: none; }
+.universal-search-result:hover, .universal-search-result:focus { background: #f3f6fb; outline: none; }
+.universal-search-result small { color: #6b7280; font-size: .78rem; }
+.universal-search-message { padding: 12px; color: #6b7280; font-size: .875rem; }

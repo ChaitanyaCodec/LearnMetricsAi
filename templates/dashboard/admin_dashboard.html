@@ -398,86 +398,18 @@ AI Powered Educational Intelligence Platform
             <div class="card-header-custom">
 
                 <h5 class="card-title">
-                    Quick Actions    ---COMING SOON 🤩🤩
+                    Quick Actions
                 </h5>
 
             </div>
 
             <div class="row g-3">
-
-    <div class="col-md-6">
-        <a href="#" class="action-card disabled">
-            <div class="action-icon">
-                <i class="fa-solid fa-user-plus"></i>
+                <div class="col-md-6"><a href="{% url 'students:student-create' %}" class="action-card"><div class="action-icon"><i class="fa-solid fa-user-plus"></i></div><div class="action-content"><h6>Add Student</h6><p>Register a student.</p></div></a></div>
+                <div class="col-md-6"><a href="{% url 'teachers:teacher-create' %}" class="action-card"><div class="action-icon"><i class="fa-solid fa-chalkboard-user"></i></div><div class="action-content"><h6>Add Teacher</h6><p>Create a teacher account.</p></div></a></div>
+                <div class="col-md-6"><a href="{% url 'academics:course-create' %}" class="action-card"><div class="action-icon"><i class="fa-solid fa-book-open"></i></div><div class="action-content"><h6>Add Course</h6><p>Create an academic course.</p></div></a></div>
+                <div class="col-md-6"><a href="{% url 'documents:review-queue' %}" class="action-card"><div class="action-icon"><i class="fa-solid fa-clipboard-check"></i></div><div class="action-content"><h6>Review Documents</h6><p>Review pending learning materials.</p></div></a></div>
+                <div class="col-md-6"><a href="{% url 'rag:student-chat' %}" class="action-card"><div class="action-icon"><i class="fa-solid fa-robot"></i></div><div class="action-content"><h6>Open AI Assistant</h6><p>Ask questions about indexed study materials.</p></div></a></div>
             </div>
-            <div class="action-content">
-                <h6>Add New User</h6>
-                <p>Create a new system user.</p>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-md-6">
-        <a href="#" class="action-card disabled">
-            <div class="action-icon">
-                <i class="fa-solid fa-user-graduate"></i>
-            </div>
-            <div class="action-content">
-                <h6>Add Student</h6>
-                <p>Register a new student.</p>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-md-6">
-        <a href="#" class="action-card disabled">
-            <div class="action-icon">
-                <i class="fa-solid fa-chalkboard-user"></i>
-            </div>
-            <div class="action-content">
-                <h6>Add Teacher</h6>
-                <p>Create a teacher account.</p>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-md-6">
-        <a href="#" class="action-card disabled">
-            <div class="action-icon">
-                <i class="fa-solid fa-file-import"></i>
-            </div>
-            <div class="action-content">
-                <h6>Import Students</h6>
-                <p>Bulk import using CSV.</p>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-md-6">
-        <a href="#" class="action-card disabled">
-            <div class="action-icon">
-                <i class="fa-solid fa-file-export"></i>
-            </div>
-            <div class="action-content">
-                <h6>Export Reports</h6>
-                <p>Download institutional reports.</p>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-md-6">
-        <a href="#" class="action-card disabled">
-            <div class="action-icon">
-                <i class="fa-solid fa-robot"></i>
-            </div>
-            <div class="action-content">
-                <h6>Ask AI Assistant</h6>
-                <p>Get AI-powered educational insights.</p>
-            </div>
-        </a>
-    </div>
-
-</div>
 
         </div>
 

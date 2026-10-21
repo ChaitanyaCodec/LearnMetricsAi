@@ -1,7 +1,7 @@
 {% extends "base/dashboard_base.html" %}
 {% load static %}
 
-{% block title %}AI Teaching Assistant | LearnMetrics AI{% endblock %}
+{% block title %}{% if assistant_mode == "admin" %}Admin AI Assistant{% else %}AI Teaching Assistant{% endif %} | LearnMetrics AI{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/rag-chat.css' %}?v=2.1">
@@ -28,9 +28,9 @@
             </div>
 
             <div>
-                <h1 class="rag-page-title">AI Academic Assistant</h1>
+                <h1 class="rag-page-title">{% if assistant_mode == "admin" %}Admin AI Assistant{% else %}AI Academic Assistant{% endif %}</h1>
                 <span class="rag-page-subtitle">
-                    Verified study materials intelligence engine
+                    {% if assistant_mode == "admin" %}Ask questions across active subjects and their indexed learning materials{% else %}Verified study materials intelligence engine{% endif %}
                 </span>
             </div>
         </div>
@@ -135,7 +135,7 @@
                                     </option>
                                 {% empty %}
                                     <option value="" disabled>
-                                        No subjects assigned
+                                        {% if assistant_mode == "admin" %}No active subjects available{% else %}No subjects assigned{% endif %}
                                     </option>
                                 {% endfor %}
 
@@ -166,7 +166,7 @@
                     </div>
 
                     <h2>
-                        How can I assist your study session?
+                        {% if assistant_mode == "admin" %}How can I help you review learning materials?{% else %}How can I assist your study session?{% endif %}
                     </h2>
 
                     <p>

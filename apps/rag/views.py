@@ -6,6 +6,8 @@ from django.shortcuts import render
 from django.views import View
 
 from apps.academics.models import Subject
+from apps.accounts.models import User
+from apps.teachers.models import TeachingAssignment
 from apps.students.models import StudentEnrollment
 
 from apps.documents.permissions import (
@@ -43,41 +45,47 @@ class StudentRAGChatView(LoginRequiredMixin, View):
     template_name = "rag/student_chat.html"
 
     def get(self, request, *args, **kwargs):
-        semester_ids = (
-            StudentEnrollment.objects
-            .filter(
-                student__user=request.user,
+        user = request.user
+        if user.role == User.Roles.TEACHER:
+            from django.shortcuts import redirect
+            return redirect("rag:teacher:chat")
+
+        if user.role == User.Roles.ADMIN:
+            # Administrators can ask about any active subject's indexed materials.
+            subjects = Subject.objects.filter(
+                is_active=True,
+                semester__is_active=True,
+                semester__course__is_active=True,
+            )
+            assistant_mode = "admin"
+        elif user.role == User.Roles.STUDENT:
+            semester_ids = StudentEnrollment.objects.filter(
+                student__user=user,
                 status=StudentEnrollment.Status.ACTIVE,
                 is_active=True,
-            )
-            .values_list(
-                "semester_id",
-                flat=True,
-            )
-        )
-
-        subjects = (
-            Subject.objects
-            .filter(
+            ).values_list("semester_id", flat=True)
+            subjects = Subject.objects.filter(
                 semester_id__in=semester_ids,
+                is_active=True,
+                semester__is_active=True,
+                semester__course__is_active=True,
             )
-            .select_related(
-                "semester",
-                "semester__course",
-            )
-            .order_by(
-                "semester__course__name",
-                "semester__semester_number",
-                "name",
-            )
+            assistant_mode = "student"
+        else:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied("Your account role cannot access this assistant.")
+
+        subjects = subjects.select_related(
+            "semester", "semester__course"
+        ).order_by(
+            "semester__course__name",
+            "semester__semester_number",
+            "name",
         )
 
         return render(
-            request,
-            self.template_name,
-            {
-                "subjects": subjects,
-            },
+            request, self.template_name,
+            {"subjects": subjects, "assistant_mode": assistant_mode},
         )
 
 

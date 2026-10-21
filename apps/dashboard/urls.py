@@ -5,6 +5,7 @@ from . import views
 app_name = "dashboard"
 
 urlpatterns = [
+    path("search/", views.UniversalSearchView.as_view(), name="search"),
     path("", views.DashboardRedirectView.as_view(), name="redirect"),
     path(
         "admin/",

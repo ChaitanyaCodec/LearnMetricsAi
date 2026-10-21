@@ -1,0 +1,186 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block title %}
+{% if form.instance.pk %}
+Update Institution
+{% else %}
+Create Institution
+{% endif %}
+| LearnMetrics AI
+{% endblock %}
+
+{% block navbar_title %}
+Institution Management
+{% endblock %}
+
+{% block navbar_subtitle %}
+Manage institution master data
+{% endblock %}
+
+{% block content %}
+
+<!-- ==========================================================
+     PAGE HEADER
+=========================================================== -->
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2 class="mb-1">
+
+            {% if form.instance.pk %}
+                Update Institution
+            {% else %}
+                Create Institution
+            {% endif %}
+
+        </h2>
+
+        <p class="text-muted mb-0">
+
+            {% if form.instance.pk %}
+                Update institution information.
+            {% else %}
+                Add a new institution.
+            {% endif %}
+
+        </p>
+
+    </div>
+
+    <a href="{% url 'academics:institution-list' %}"
+       class="btn btn-outline-secondary">
+
+        <i class="fa-solid fa-arrow-left me-2"></i>
+
+        Back
+
+    </a>
+
+</div>
+
+<!-- ==========================================================
+     FORM
+=========================================================== -->
+
+<div class="card-custom">
+
+    <div class="card-header-custom">
+
+        <h5 class="card-title mb-0">
+
+            Institution Details
+
+        </h5>
+
+    </div>
+
+    <div class="card-body-custom">
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">
+                        Name
+                    </label>
+                    {{ form.name }}
+                    {{ form.name.errors }}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">
+                        Short Name
+                    </label>
+                    {{ form.short_name }}
+                    {{ form.short_name.errors }}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">
+                        Email
+                    </label>
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">
+                        Phone Number
+                    </label>
+                    {{ form.phone_number }}
+                    {{ form.phone_number.errors }}
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">
+                        Website
+                    </label>
+                    {{ form.website }}
+                    {{ form.website.errors }}
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">
+                        Address
+                    </label>
+                    {{ form.address }}
+                    {{ form.address.errors }}
+                </div>
+
+                <div class="col-12">
+
+                    <div class="form-check">
+
+                        {{ form.is_active }}
+
+                        <label class="form-check-label">
+
+                            Active Institution
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <hr>
+
+            <div class="d-flex justify-content-end gap-2">
+
+                <a href="{% url 'academics:institution-list' %}"
+                   class="btn btn-secondary">
+
+                    Cancel
+
+                </a>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary">
+
+                    <i class="fa-solid fa-floppy-disk me-2"></i>
+
+                    {% if form.instance.pk %}
+                        Update Institution
+                    {% else %}
+                        Save Institution
+                    {% endif %}
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,6 +1,13 @@
+"""
+Base Django settings for LearnMetrics AI.
+
+PostgreSQL is required. This configuration intentionally has no SQLite fallback.
+"""
+
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 # -----------------------------------------------------------------------------
 # Paths
@@ -13,19 +20,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # -----------------------------------------------------------------------------
 
 env = environ.Env()
-
 environ.Env.read_env(BASE_DIR / ".env")
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
+# -----------------------------------------------------------------------------
+# Security / debug
+# -----------------------------------------------------------------------------
+
 SECRET_KEY = env.str("SECRET_KEY")
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=False)
 
-
+# -----------------------------------------------------------------------------
 # Application definition
+# -----------------------------------------------------------------------------
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -72,23 +78,36 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# login and logout settings
+# Login and logout settings
 LOGIN_URL = "accounts:login"
-
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/auth/login/"
 
+# -----------------------------------------------------------------------------
+# Database — PostgreSQL only
+# -----------------------------------------------------------------------------
 
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+# DATABASE_URL must be configured in .env. Example format:
+# DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DBNAME?sslmode=require
+# Use the exact Supabase Session Pooler username and URL-encode special
+# characters in the password. Never commit .env to source control.
 
 DATABASES = {
-    "default": env.db(default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
+    "default": env.db("DATABASE_URL"),
 }
 
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+if DATABASES["default"].get("ENGINE") != "django.db.backends.postgresql":
+    raise ImproperlyConfigured(
+        "LearnMetrics AI requires PostgreSQL. "
+        "Set DATABASE_URL to a PostgreSQL connection string in .env."
+    )
+
+# Custom user model
 AUTH_USER_MODEL = "accounts.User"
+
+# -----------------------------------------------------------------------------
+# Password validation
+# -----------------------------------------------------------------------------
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -105,38 +124,33 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
+# -----------------------------------------------------------------------------
 # Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
+# -----------------------------------------------------------------------------
 
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
+# -----------------------------------------------------------------------------
+# Static and media files
+# -----------------------------------------------------------------------------
 
 STATIC_URL = "static/"
-
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
-
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-
-#documents app settings
+# -----------------------------------------------------------------------------
+# Documents app settings
+# -----------------------------------------------------------------------------
 
 DOCUMENTS_MAX_UPLOAD_SIZE = 20 * 1024 * 1024  # 20 MB
 
@@ -153,85 +167,58 @@ DOCUMENTS_CHUNK_OVERLAP = 150
 PRIVATE_DOCUMENTS_ROOT = BASE_DIR / "private_documents"
 
 # -----------------------------------------------------------------------------
-# RAG / Embedding settings
+# RAG / embedding settings
 # -----------------------------------------------------------------------------
 
 RAG_EMBEDDING_MODEL = env.str(
     "RAG_EMBEDDING_MODEL",
     default="all-MiniLM-L6-v2",
 )
-
 RAG_EMBEDDING_DIMENSIONS = env.int(
     "RAG_EMBEDDING_DIMENSIONS",
     default=384,
 )
 
-
-# RAG indexing settings
-
 RAG_INDEXING_BATCH_SIZE = 32
-
 RAG_INDEXING_MAX_CHUNK_LENGTH = 10000
-
 
 RAG_GENERATION_MAX_CONTEXT_CHUNKS = env.int(
     "RAG_GENERATION_MAX_CONTEXT_CHUNKS",
     default=5,
 )
-
 RAG_GENERATION_MAX_CONTEXT_CHARACTERS = env.int(
     "RAG_GENERATION_MAX_CONTEXT_CHARACTERS",
     default=12000,
 )
 
-
 RAG_RETRIEVAL_TOP_K = env.int(
     "RAG_RETRIEVAL_TOP_K",
     default=5,
 )
-
 RAG_RETRIEVAL_MAX_DISTANCE = env.float(
     "RAG_RETRIEVAL_MAX_DISTANCE",
     default=0.60,
 )
-
 
 RAG_CONVERSATION_HISTORY_LIMIT = env.int(
     "RAG_CONVERSATION_HISTORY_LIMIT",
     default=10,
 )
 
-
-# ----------------------------------------------------------------------------- 
-# RAG / LLM Provider settings
+# -----------------------------------------------------------------------------
+# RAG / LLM provider settings
 # -----------------------------------------------------------------------------
 
-GROQ_API_KEY = env.str(
-    "GROQ_API_KEY",
-    default="",
-)
+GROQ_API_KEY = env.str("GROQ_API_KEY", default="")
+GROQ_MODEL = env.str("GROQ_MODEL", default="")
 
-GROQ_MODEL = env.str(
-    "GROQ_MODEL",
-    default="",
-)
-
-GEMINI_API_KEY = env.str(
-    "GEMINI_API_KEY",
-    default="",
-)
-
-GEMINI_MODEL = env.str(
-    "GEMINI_MODEL",
-    default="",
-)
-
+GEMINI_API_KEY = env.str("GEMINI_API_KEY", default="")
+GEMINI_MODEL = env.str("GEMINI_MODEL", default="")
 
 OLLAMA_BASE_URL = env.str(
     "OLLAMA_BASE_URL",
     default="http://localhost:11434",
 )
-
 OLLAMA_MODEL = env.str(
     "OLLAMA_MODEL",
     default="qwen2.5:3b",
