@@ -5,20 +5,19 @@ Responsible for:
 - Reading and validating teacher CSV data.
 - Validating the complete file before writing.
 - Creating User + Teacher records atomically.
-- Generating temporary passwords.
+- Assigning the shared temporary password for imported accounts.
 """
 
 from __future__ import annotations
 
 import csv
 import io
-import secrets
-import string
 from datetime import datetime
 
 from django.db import transaction
 
 from apps.accounts.models import User
+from apps.accounts.constants import DEFAULT_TEMPORARY_PASSWORD
 
 from ..models import Teacher
 
@@ -354,9 +353,7 @@ class TeacherCSVImportService:
                     cls.DATE_FORMAT,
                 ).date()
 
-            temporary_password = (
-                cls._generate_password()
-            )
+            temporary_password = DEFAULT_TEMPORARY_PASSWORD
 
             user = User.objects.create_user(
                 email=email,
@@ -389,24 +386,3 @@ class TeacherCSVImportService:
             )
 
         return results
-
-    # ======================================================
-    # Password Generation
-    # ======================================================
-
-    @staticmethod
-    def _generate_password(length=12):
-        """
-        Generate a temporary password.
-        """
-
-        alphabet = (
-            string.ascii_letters
-            + string.digits
-            + "!@#$%"
-        )
-
-        return "".join(
-            secrets.choice(alphabet)
-            for _ in range(length)
-        )

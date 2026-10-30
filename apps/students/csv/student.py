@@ -9,13 +9,13 @@ The transaction itself is handled by service.py.
 
 import csv
 import io
-import secrets
 from datetime import datetime
 
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
 from apps.accounts.models import User
+from apps.accounts.constants import DEFAULT_TEMPORARY_PASSWORD
 
 from ..models import Student
 from .service import (
@@ -281,9 +281,7 @@ def create_student_from_row(row):
     has passed validation.
     """
 
-    temporary_password = secrets.token_urlsafe(
-        12
-    )
+    temporary_password = DEFAULT_TEMPORARY_PASSWORD
 
     user = User.objects.create_user(
         email=row["email"],

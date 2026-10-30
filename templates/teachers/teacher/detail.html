@@ -35,6 +35,14 @@
     <div class="d-flex gap-2">
 
         <a
+            href="{% url 'accounts:admin-password-reset' 'teacher' teacher.pk %}"
+            class="btn btn-outline-warning"
+        >
+            <i class="bi bi-key me-1"></i>
+            Reset Password
+        </a>
+
+        <a
             href="{% url 'teachers:teacher-update' teacher.pk %}"
             class="btn btn-outline-primary"
         >

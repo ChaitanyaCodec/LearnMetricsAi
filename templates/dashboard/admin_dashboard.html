@@ -1,408 +1,71 @@
 {% extends "base/dashboard_base.html" %}
 {% load static %}
 
-{% block title %}
-Administrator Dashboard | LearnMetrics AI
-{% endblock %}
-
-{% block navbar_title %}
-Administrator Dashboard
-{% endblock %}
-
-{% block navbar_subtitle %}
-AI Powered Educational Intelligence Platform
-{% endblock %}
+{% block title %}Administrator Dashboard | LearnMetrics AI{% endblock %}
+{% block navbar_title %}Administrator Dashboard{% endblock %}
+{% block navbar_subtitle %}AI Powered Educational Intelligence Platform{% endblock %}
 
 {% block content %}
-
-
-<!-- ==========================================================
-     HERO SECTION
-=========================================================== -->
-
 <section class="dashboard-hero">
-
     <div class="hero-content">
-
-        <span class="hero-badge">
-            <i class="fa-solid fa-sparkles"></i>
-            LearnMetrics AI
-        </span>
-
-        <h1>
-            Welcome back,
-            {{ request.user.first_name }} 👋
-        </h1>
-
-        <p>
-            Monitor your institution, manage users, oversee academic
-            operations, analyze AI insights, and access powerful
-            administrative tools from one centralized platform.
-        </p>
-
+        <span class="hero-badge"><i class="fa-solid fa-sparkles"></i> LearnMetrics AI</span>
+        <h1>Welcome back, {{ request.user.first_name }} 👋</h1>
+        <p>Monitor your institution, manage users, oversee academic operations, analyze AI insights, and access powerful administrative tools from one centralized platform.</p>
         <div class="hero-actions">
-
-            <button class="btn btn-primary">
-                <i class="fa-solid fa-rocket me-2"></i>
-                Get Started
-            </button>
-
-            <button class="btn btn-outline-primary">
-                <i class="fa-solid fa-book me-2"></i>
-                Documentation
-            </button>
-
+            <button class="btn btn-primary"><i class="fa-solid fa-rocket me-2"></i>Get Started</button>
+            <button class="btn btn-outline-primary"><i class="fa-solid fa-book me-2"></i>Documentation</button>
         </div>
-
     </div>
-
-    <div class="hero-illustration">
-
-        <div class="hero-circle">
-            <i class="fa-solid fa-graduation-cap"></i>
-        </div>
-
-    </div>
-
+    <div class="hero-illustration"><div class="hero-circle"><i class="fa-solid fa-graduation-cap"></i></div></div>
 </section>
 
-<!-- ==========================================================
-     KPI CARDS
-=========================================================== -->
-
 <div class="row g-4 mb-4">
-
-    <!-- Total Teachers -->
-
-    <div class="col-xl-3 col-md-6">
-
-        <div class="kpi-card">
-
-            <div class="kpi-content">
-
-                <span class="kpi-label">
-                    Total Teachers
-                </span>
-
-                <h2 class="kpi-value">
-                    {{ dashboard.total_teachers }}
-                </h2>
-
-                <span class="kpi-change text-muted">
-                    Registered Teachers
-                </span>
-
-            </div>
-
-            <div class="kpi-icon">
-                <i class="fa-solid fa-chalkboard-user"></i>
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- Total Students -->
-
-    <div class="col-xl-3 col-md-6">
-
-        <div class="kpi-card">
-
-            <div class="kpi-content">
-
-                <span class="kpi-label">
-                    Total Students
-                </span>
-
-                <h2 class="kpi-value">
-                    {{ dashboard.total_students }}
-                </h2>
-
-                <span class="kpi-change text-muted">
-                    Registered Students
-                </span>
-
-            </div>
-
-            <div class="kpi-icon">
-                <i class="fa-solid fa-user-graduate"></i>
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- Total Admins -->
-
-    <div class="col-xl-3 col-md-6">
-
-        <div class="kpi-card">
-
-            <div class="kpi-content">
-
-                <span class="kpi-label">
-                    Total Admins
-                </span>
-
-                <h2 class="kpi-value">
-                    {{ dashboard.total_admins }}
-                </h2>
-
-                <span class="kpi-change text-muted">
-                    Administrator Accounts
-                </span>
-
-            </div>
-
-            <div class="kpi-icon">
-                <i class="fa-solid fa-user-shield"></i>
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- Active Users -->
-
-    <div class="col-xl-3 col-md-6">
-
-        <div class="kpi-card">
-
-            <div class="kpi-content">
-
-                <span class="kpi-label">
-                    Active Users
-                </span>
-
-                <h2 class="kpi-value">
-                    {{ dashboard.active_users }}
-                </h2>
-
-                <span class="kpi-change text-muted">
-                    Enabled User Accounts
-                </span>
-
-            </div>
-
-            <div class="kpi-icon">
-                <i class="fa-solid fa-user-check"></i>
-            </div>
-
-        </div>
-
-    </div>
-
+    <div class="col-xl-3 col-md-6"><div class="kpi-card"><div class="kpi-content"><span class="kpi-label">Total Teachers</span><h2 class="kpi-value">{{ dashboard.total_teachers }}</h2><span class="kpi-change text-muted">Registered Teachers</span></div><div class="kpi-icon"><i class="fa-solid fa-chalkboard-user"></i></div></div></div>
+    <div class="col-xl-3 col-md-6"><div class="kpi-card"><div class="kpi-content"><span class="kpi-label">Total Students</span><h2 class="kpi-value">{{ dashboard.total_students }}</h2><span class="kpi-change text-muted">Registered Students</span></div><div class="kpi-icon"><i class="fa-solid fa-user-graduate"></i></div></div></div>
+    <div class="col-xl-3 col-md-6"><div class="kpi-card"><div class="kpi-content"><span class="kpi-label">Total Admins</span><h2 class="kpi-value">{{ dashboard.total_admins }}</h2><span class="kpi-change text-muted">Administrator Accounts</span></div><div class="kpi-icon"><i class="fa-solid fa-user-shield"></i></div></div></div>
+    <div class="col-xl-3 col-md-6"><div class="kpi-card"><div class="kpi-content"><span class="kpi-label">Active Users</span><h2 class="kpi-value">{{ dashboard.active_users }}</h2><span class="kpi-change text-muted">Enabled User Accounts</span></div><div class="kpi-icon"><i class="fa-solid fa-user-check"></i></div></div></div>
 </div>
-<!-- ==========================================================
-     CONTENT GRID
-=========================================================== -->
+
 <div class="row g-3 mb-4">
-    <div class="col-md-6">
-        <a
-            href="{% url 'documents:list' %}"
-            class="btn btn-primary w-100 py-3"
-        >
-            <i class="fa-solid fa-folder-open me-2"></i>
-            Manage Documents
-        </a>
-    </div>
-
-    <div class="col-md-6">
-        <a
-            href="{% url 'documents:review-queue' %}"
-            class="btn btn-outline-primary w-100 py-3"
-        >
-            <i class="fa-solid fa-clipboard-check me-2"></i>
-            Review Submitted Versions
-        </a>
-    </div>
+    <div class="col-md-6"><a href="{% url 'documents:list' %}" class="btn btn-primary w-100 py-3"><i class="fa-solid fa-folder-open me-2"></i>Manage Documents</a></div>
+    <div class="col-md-6"><a href="{% url 'documents:review-queue' %}" class="btn btn-outline-primary w-100 py-3"><i class="fa-solid fa-clipboard-check me-2"></i>Review Submitted Versions</a></div>
 </div>
+
 <div class="row g-4">
-
     <div class="col-lg-8">
-
         <div class="card-custom">
-
-            <div class="card-header-custom">
-
-                <h5 class="card-title">
-                    Recent Activity
-                </h5>
-
-            </div>
-
+            <div class="card-header-custom"><h5 class="card-title">Recent Activity</h5></div>
             <div class="card-body-custom p-0">
-
                 {% if dashboard.recent_users %}
-
                 <div class="table-responsive">
-
                     <table class="table table-hover align-middle mb-0">
-
-                        <thead>
-
-                            <tr>
-
-                                <th>User</th>
-
-                                <th>Role</th>
-
-                                <th>Status</th>
-
-                                <th>Joined</th>
-
-                            </tr>
-
-                        </thead>
-
+                        <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Joined</th></tr></thead>
                         <tbody>
-
-                            {% for user in dashboard.recent_users %}
-
+                        {% for user in dashboard.recent_users %}
                             <tr>
-
-                                <!-- User -->
-
+                                <td><div class="d-flex align-items-center"><div class="avatar-circle me-3">{{ user.first_name|first|default:user.email|first|upper }}</div><div><div class="fw-semibold">{% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.email }}{% endif %}</div><small class="text-muted">{{ user.email }}</small></div></div></td>
                                 <td>
-
-                                    <div class="d-flex align-items-center">
-
-                                        <div class="avatar-circle me-3">
-
-                                            {{ user.first_name|first|default:user.email|first|upper }}
-
-                                        </div>
-
-                                        <div>
-
-                                            <div class="fw-semibold">
-
-                                                {% if user.get_full_name %}
-                                                {{ user.get_full_name }}
-                                                {% else %}
-                                                {{ user.email }}
-                                                {% endif %}
-
-                                            </div>
-
-                                            <small class="text-muted">
-
-                                                {{ user.email }}
-
-                                            </small>
-
-                                        </div>
-
-                                    </div>
-
+                                    {% if user.role == user.Roles.ADMIN %}<span class="badge bg-danger">Admin</span>
+                                    {% elif user.role == user.Roles.TEACHER %}<span class="badge bg-primary">Teacher</span>
+                                    {% elif user.role == user.Roles.STUDENT %}<span class="badge bg-success">Student</span>
+                                    {% else %}<span class="badge bg-secondary">Unknown</span>{% endif %}
                                 </td>
-
-                                <!-- Role -->
-
-                                <td>
-
-                                    {% if user.role == user.Roles.ADMIN %}
-
-                                    <span class="badge bg-danger">
-                                        Admin
-                                    </span>
-
-                                    {% elif user.role == user.Roles.TEACHER %}
-
-                                    <span class="badge bg-primary">
-                                        Teacher
-                                    </span>
-
-                                    {% elif user.role == user.Roles.STUDENT %}
-
-                                    <span class="badge bg-success">
-                                        Student
-                                    </span>
-
-                                    {% else %}
-
-                                    <span class="badge bg-secondary">
-                                        Unknown
-                                    </span>
-
-                                    {% endif %}
-
-                                </td>
-
-                                <!-- Status -->
-
-                                <td>
-
-                                    {% if user.is_active %}
-
-                                    <span class="badge bg-success">
-                                        Active
-                                    </span>
-
-                                    {% else %}
-
-                                    <span class="badge bg-secondary">
-                                        Inactive
-                                    </span>
-
-                                    {% endif %}
-
-                                </td>
-
-                                <!-- Joined -->
-
-                                <td>
-
-                                    {{ user.date_joined|date:"d M Y" }}
-
-                                </td>
-
+                                <td>{% if user.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+                                <td>{{ user.date_joined|date:"d M Y" }}</td>
                             </tr>
-
-                            {% endfor %}
-
+                        {% endfor %}
                         </tbody>
-
                     </table>
-
                 </div>
-
                 {% else %}
-
-                <div class="empty-widget py-5 text-center">
-
-                    <i class="fa-solid fa-users fa-2x text-muted mb-3"></i>
-
-                    <h6>No Users Found</h6>
-
-                    <p class="text-muted mb-0">
-
-                        Users will appear here after registration.
-
-                    </p>
-
-                </div>
-
+                <div class="empty-widget py-5 text-center"><i class="fa-solid fa-users fa-2x text-muted mb-3"></i><h6>No Users Found</h6><p class="text-muted mb-0">Users will appear here after registration.</p></div>
                 {% endif %}
-
             </div>
-
         </div>
-
     </div>
-
     <div class="col-lg-4">
-
         <div class="card-custom">
-
-            <div class="card-header-custom">
-
-                <h5 class="card-title">
-                    Quick Actions
-                </h5>
-
-            </div>
-
+            <div class="card-header-custom"><h5 class="card-title">Quick Actions</h5></div>
             <div class="row g-3">
                 <div class="col-md-6"><a href="{% url 'students:student-create' %}" class="action-card"><div class="action-icon"><i class="fa-solid fa-user-plus"></i></div><div class="action-content"><h6>Add Student</h6><p>Register a student.</p></div></a></div>
                 <div class="col-md-6"><a href="{% url 'teachers:teacher-create' %}" class="action-card"><div class="action-icon"><i class="fa-solid fa-chalkboard-user"></i></div><div class="action-content"><h6>Add Teacher</h6><p>Create a teacher account.</p></div></a></div>
@@ -410,96 +73,35 @@ AI Powered Educational Intelligence Platform
                 <div class="col-md-6"><a href="{% url 'documents:review-queue' %}" class="action-card"><div class="action-icon"><i class="fa-solid fa-clipboard-check"></i></div><div class="action-content"><h6>Review Documents</h6><p>Review pending learning materials.</p></div></a></div>
                 <div class="col-md-6"><a href="{% url 'rag:student-chat' %}" class="action-card"><div class="action-icon"><i class="fa-solid fa-robot"></i></div><div class="action-content"><h6>Open AI Assistant</h6><p>Ask questions about indexed study materials.</p></div></a></div>
             </div>
-
         </div>
-
     </div>
-
 </div>
-
-<!-- ==========================================================
-     SYSTEM HEALTH
-=========================================================== -->
 
 <div class="row mt-4">
-
     <div class="col-12">
-
         <div class="card-custom">
-
-            <div class="card-header-custom">
-
-                <h5 class="card-title">
-                    System Health
-                </h5>
-
-            </div>
-
+            <div class="card-header-custom"><h5 class="card-title">System Health</h5></div>
             <div class="card-body-custom">
-
                 <div class="row">
-
-                    <div class="col-md-6 mb-3">
-
-                        <strong>Database</strong>
-
-                        <span class="badge bg-success float-end">
-                            {{ dashboard.system_status.database }}
-                        </span>
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <strong>Authentication</strong>
-
-                        <span class="badge bg-success float-end">
-                            {{ dashboard.system_status.authentication }}
-                        </span>
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <strong>AI Assistant</strong>
-
-                        <span class="badge bg-warning text-dark float-end">
-                            {{ dashboard.system_status.ai_module }}
-                        </span>
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <strong>Background Tasks</strong>
-
-                        <span class="badge bg-warning text-dark float-end">
-                            {{ dashboard.system_status.background_tasks }}
-                        </span>
-
-                    </div>
-
+                    {% with health=dashboard.system_status.database %}
+                    <div class="col-md-6 mb-3"><strong>Database</strong><span class="badge {% if health.status == 'success' %}bg-success{% elif health.status == 'warning' %}bg-warning text-dark{% else %}bg-danger{% endif %} float-end">{{ health.label|default:health.status|default:health }}</span></div>
+                    {% endwith %}
+                    {% with health=dashboard.system_status.authentication %}
+                    <div class="col-md-6 mb-3"><strong>Authentication</strong><span class="badge {% if health.status == 'success' %}bg-success{% elif health.status == 'warning' %}bg-warning text-dark{% else %}bg-danger{% endif %} float-end">{{ health.label|default:health.status|default:health }}</span></div>
+                    {% endwith %}
+                    {% with health=dashboard.system_status.ai_module %}
+                    <div class="col-md-6 mb-3"><strong>AI Assistant</strong><span class="badge {% if health.status == 'success' %}bg-success{% elif health.status == 'warning' %}bg-warning text-dark{% else %}bg-danger{% endif %} float-end">{{ health.label|default:health.status|default:health }}</span></div>
+                    {% endwith %}
+                    {% with health=dashboard.system_status.background_tasks %}
+                    <div class="col-md-6 mb-3"><strong>Background Tasks</strong><span class="badge {% if health.status == 'success' %}bg-success{% elif health.status == 'warning' %}bg-warning text-dark{% else %}bg-danger{% endif %} float-end">{{ health.label|default:health.status|default:health }}</span></div>
+                    {% endwith %}
                 </div>
-
                 <hr>
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <strong>Overall Status</strong>
-
-                    <span class="badge bg-success">
-                        {{ dashboard.system_status.overall }}
-                    </span>
-
-                </div>
-
+                {% with health=dashboard.system_status.overall %}
+                <div class="d-flex justify-content-between align-items-center"><strong>Overall Status</strong><span class="badge {% if health.status == 'success' %}bg-success{% elif health.status == 'warning' %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ health.label|default:health.status|default:health }}</span></div>
+                {% endwith %}
             </div>
-
         </div>
-
     </div>
-
 </div>
-
-
 {% endblock %}

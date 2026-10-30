@@ -151,6 +151,10 @@
                                 View
                             </a>
 
+                            <a href="{% url 'accounts:admin-password-reset' 'student' student.pk %}" class="btn btn-sm btn-outline-warning" title="Reset password">
+                                <i class="bi bi-key"></i> Reset Password
+                            </a>
+
                             <a
                                 href="{% url 'students:student-update' student.pk %}"
                                 class="btn btn-sm btn-outline-primary"
@@ -179,6 +183,53 @@
             </table>
 
         </div>
+
+
+        {% if is_paginated %}
+        <nav aria-label="Profile list pagination" class="mt-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <small class="text-muted">
+                    Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}
+                    of {{ paginator.count }} records
+                </small>
+
+                <ul class="pagination mb-0">
+                    <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+                        {% if page_obj.has_previous %}
+                            <a class="page-link"
+                               href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&amp;search={{ request.GET.search|urlencode }}{% endif %}{% if request.GET.page_size %}&amp;page_size={{ request.GET.page_size|urlencode }}{% endif %}{% if request.GET.ordering %}&amp;ordering={{ request.GET.ordering|urlencode }}{% endif %}"
+                               aria-label="Previous page">Previous</a>
+                        {% else %}
+                            <span class="page-link">Previous</span>
+                        {% endif %}
+                    </li>
+
+                    {% for page_number in paginator.page_range %}
+                        {% if page_number == page_obj.number %}
+                            <li class="page-item active" aria-current="page">
+                                <span class="page-link">{{ page_number }}</span>
+                            </li>
+                        {% elif page_number >= page_obj.number|add:"-2" and page_number <= page_obj.number|add:"2" %}
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="?page={{ page_number }}{% if request.GET.search %}&amp;search={{ request.GET.search|urlencode }}{% endif %}{% if request.GET.page_size %}&amp;page_size={{ request.GET.page_size|urlencode }}{% endif %}{% if request.GET.ordering %}&amp;ordering={{ request.GET.ordering|urlencode }}{% endif %}">{{ page_number }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+                        {% if page_obj.has_next %}
+                            <a class="page-link"
+                               href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&amp;search={{ request.GET.search|urlencode }}{% endif %}{% if request.GET.page_size %}&amp;page_size={{ request.GET.page_size|urlencode }}{% endif %}{% if request.GET.ordering %}&amp;ordering={{ request.GET.ordering|urlencode }}{% endif %}"
+                               aria-label="Next page">Next</a>
+                        {% else %}
+                            <span class="page-link">Next</span>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        {% endif %}
 
         {% else %}
 
